@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post Fiction — Card Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Audiowide&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Roboto',sans-serif;background:#1a1714;color:#ddd;min-height:100vh}
+
+/* ── SHELL ────────────────────────────────────────────────────── */
+header{background:#111;border-bottom:2px solid #c8391a;padding:15px 28px;display:flex;align-items:baseline;gap:14px}
+header h1{font-family:'Audiowide',sans-serif;font-size:18px;color:#f0e6c8;letter-spacing:.06em}
+header span{font-size:11px;color:#444;font-family:'Roboto',monospace}
+.shell{display:flex;min-height:calc(100vh - 54px)}
+aside{width:185px;min-width:185px;background:#141210;border-right:1px solid #2a2520;padding:16px 0;display:flex;flex-direction:column}
+.nlbl{font-size:9px;letter-spacing:.12em;color:#6a5e56;text-transform:uppercase;padding:10px 16px 4px;font-family:'Roboto',sans-serif}
+.nbtn{display:block;width:100%;text-align:left;background:none;border:none;padding:8px 16px;font-size:13px;font-family:'Roboto',sans-serif;color:#888;cursor:pointer;transition:all .1s}
+.nbtn:hover{background:#1e1c18;color:#aaa}
+.nbtn.on{background:#1e1c18;color:#f0e6c8;border-left:2px solid #c8391a;padding-left:14px}
+.nbadge{display:inline-block;background:#c8391a;color:#fff;font-size:9px;border-radius:8px;padding:1px 5px;margin-left:5px;font-family:'Roboto',sans-serif;vertical-align:middle}
+.nfoot{margin-top:auto;padding:12px 16px;font-size:10px;color:#6a5e56;font-family:'Roboto',sans-serif;line-height:1.9}
+main{flex:1;padding:24px 28px;overflow-x:hidden}
+
+/* ── MOBILE ─────────────────────────────────────────────────────── */
+.hamburger{display:none;background:none;border:none;color:#f0e6c8;font-size:22px;cursor:pointer;padding:0 4px;line-height:1;flex-shrink:0}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:199}
+.sidebar-overlay.on{display:block}
+
+@media(max-width:680px){
+  header{padding:12px 16px}
+  header h1{font-size:15px}
+  header span{display:none}
+  .hamburger{display:block}
+  .shell{position:relative}
+  aside{
+    position:fixed;left:-200px;top:0;bottom:0;z-index:200;
+    width:200px;min-width:200px;
+    transition:left .22s ease;
+    padding-top:56px;
+    box-shadow:4px 0 16px rgba(0,0,0,.5);
+  }
+  aside.open{left:0}
+  main{padding:14px 12px}
+  .fbar{gap:6px}
+  .fbar input{width:100%;flex:1 1 100%}
+  .fbar select{flex:1}
+  .cgrid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(var(--card-w,140px),1fr));
+    gap:10px;
+  }
+  .pf-card{min-width:0!important;height:var(--card-h,auto)!important;aspect-ratio:168/235}
+  .pf-card-inner{padding-bottom:140%}
+  .stitle{font-size:9px}
+  .bgrn,.bpln{font-size:11px;padding:5px 8px}
+  .th-bar{flex-direction:column;align-items:stretch}
+  .th-bar .btn-draw,.th-bar .btn-newhand,.th-bar .btn-reset{width:100%;justify-content:center}
+  .rw{max-width:100%}
+  .rt{font-size:11px}
+  .rt td,.rt th{padding:4px 6px}
+  .deck-list .deck-item-hd{flex-direction:column;gap:4px}
+  .deck-item-acts{flex-wrap:wrap}
+}
+
+@media(max-width:400px){
+  .cgrid{grid-template-columns:repeat(2,1fr)}
+}
+.stitle{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a7e74;font-family:'Roboto',sans-serif;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #2a2520}
+.fbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.zoom-btns{display:flex;gap:3px;align-items:center}
+.zbtn{background:none;border:1px solid #2a2520;border-radius:3px;color:#888;font-size:10px;font-family:'Roboto',sans-serif;padding:3px 7px;cursor:pointer}
+.zbtn:hover{border-color:#555;color:#aaa}
+.zbtn.on{background:#1a1814;border-color:#c8391a;color:#f0e6c8}
+.fbar select,.fbar input{font-family:'Roboto',sans-serif;font-size:12px;background:#1e1c18;color:#bbb;border:1px solid #2a2520;border-radius:4px;padding:6px 10px;outline:none}
+.fbar select:focus,.fbar input:focus{border-color:#c8391a}
+.fbar input{width:180px}
+.clbl{font-size:11px;color:#7a6e64;font-family:'Roboto',sans-serif}
+.bgrn{background:#1a3a1a;color:#7ec87e;border:1px solid #2a4a2a;border-radius:4px;padding:6px 12px;font-family:'Roboto',sans-serif;font-size:12px;cursor:pointer;margin-left:auto}
+.bgrn:hover{background:#1e441e}
+.bpln{background:none;border:1px solid #2a2520;border-radius:4px;padding:6px 12px;font-family:'Roboto',sans-serif;font-size:12px;color:#888;cursor:pointer}
+.bpln:hover{border-color:#444;color:#888}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w,168px),1fr));gap:14px}
+.empty{color:#7a6e64;font-size:13px;padding:2rem 0;font-family:'Roboto',sans-serif}
+
+/* ══════════════════════════════════════════════════════════════
+   CARD — 480x672 native, displayed at 0.35x = 168x235px
+   All zone positions are percentages of 480x672
+   Header:  y 0–72    (10.7%)
+   Art:     y 72–347  (40.9% height)
+   Type:    y 347–395 (7.1%)
+   Text:    y 395–635 (35.7%)
+   Footer:  y 635–672 (5.5%)
+   Art x:   24–455    (4.9% – 94.8%)
+══════════════════════════════════════════════════════════════ */
+.pf-card{
+  width:var(--card-w,168px);
+  height:var(--card-h,235px);
+  min-width:0;
+  position:relative;
+  cursor:pointer;
+  user-select:none;
+  flex-shrink:0;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 2px 8px rgba(0,0,0,.5);
+  border-radius:6px;
+  overflow:hidden;
+}
+.pf-card:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.6)}
+.pf-card.q{outline:3px solid #fff;outline-offset:2px}
+.pf-card.sm{width:126px;height:176px;min-width:126px}
+.pf-card.hc{cursor:default}
+.pf-card.hc:hover{transform:none;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+
+/* Frame image fills the card completely */
+.c-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;z-index:1}
+
+/* Art image sits behind all overlays */
+/* Art zone: x=24/480=5%, y=72/672=10.7%, w=431/480=89.8%, h=275/672=40.9% */
+.c-art{
+  position:absolute;
+  left:5%;top:10.7%;
+  width:89.8%;height:40.9%;
+  overflow:hidden;
+  z-index:0;
+}
+.c-art img{width:100%;height:100%;object-fit:cover;display:block}
+.c-art-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;font-family:'Roboto',sans-serif;background:rgba(0,0,0,.15)}
+
+/* All text overlays sit above frame (z-index 2+) */
+
+/* Card name — header zone y=0-10.7%, left aligned, leaves room for cost badge */
+.c-name{
+  position:absolute;
+  left:4%;top:1.5%;
+  width:72%;
+  font-family:'Roboto',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  color:#111;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  z-index:2;
+  line-height:1;
+  padding-top:1.5%;
+}
+.pf-card.sm .c-name{font-size:8.5px}
+
+/* Cost — top right corner, Audiowide font */
+.c-cost{
+  position:absolute;
+  right:3%;top:1%;
+  font-family:'Audiowide',sans-serif;
+  font-size:13px;
+  font-weight:400;
+  color:#111;
+  z-index:2;
+  line-height:1;
+  padding-top:1%;
+}
+.pf-card.sm .c-cost{font-size:10px}
+
+/* Typeline zone: y=51.6%-58.8% */
+/* ATK left, subtype/type center, DEF right */
+.c-atk{
+  position:absolute;
+  left:4%;
+  top:53%;
+  font-family:'Audiowide',sans-serif;
+  font-size:11px;
+  color:#111;
+  z-index:2;
+}
+.pf-card.sm .c-atk{font-size:8px}
+
+.c-typeline{
+  position:absolute;
+  left:0;right:0;
+  top:52%;
+  text-align:center;
+  font-family:'Roboto',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  color:#111;
+  z-index:2;
+}
+.pf-card.sm .c-typeline{font-size:8px}
+
+.c-def{
+  position:absolute;
+  right:4%;
+  top:53%;
+  font-family:'Audiowide',sans-serif;
+  font-size:11px;
+  color:#111;
+  z-index:2;
+}
+.pf-card.sm .c-def{font-size:8px}
+
+/* Effect text: y=58.8%-94.5% */
+.c-effect{
+  position:absolute;
+  left:4%;right:4%;
+  top:60%;
+  bottom:8%;
+  font-family:'Roboto',sans-serif;
+  font-weight:700;
+  font-size:9px;
+  color:#111;
+  line-height:1.45;
+  overflow:hidden;
+  z-index:2;
+}
+.pf-card.sm .c-effect{font-size:7px}
+
+/* Flavor text — italic, sits below effect, above footer */
+.c-flavor{
+  position:absolute;
+  left:4%;right:4%;
+  bottom:8%;
+  font-family:'Roboto',sans-serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:7.5px;
+  color:#444;
+  z-index:2;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.pf-card.sm .c-flavor{font-size:6px}
+
+/* Set label — footer zone y=94.5-100% */
+.c-setlabel{
+  position:absolute;
+  left:4%;
+  bottom:1%;
+  font-family:'Roboto',sans-serif;
+  font-size:6px;
+  color:#666;
+  z-index:2;
+}
+
+/* Queue badge */
+.qbdg{position:absolute;top:4px;left:4px;z-index:10;background:#c8391a;color:#fff;font-size:9px;font-family:'Roboto',sans-serif;font-weight:700;border-radius:10px;padding:1px 6px}
+
+/* ── TEST HAND ─────────────────────────────────────────────────── */
+.th-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 16px;background:#1a1814;border:1px solid #2a2520;border-radius:8px;margin-bottom:20px}
+.th-info{flex:1;font-size:12px;color:#9a8e80;font-family:'Roboto',sans-serif;line-height:1.9}
+.th-info strong{color:#c8b090}
+.btn-draw{background:#1a1714;border:2px solid #c8391a;border-radius:8px;padding:9px 16px;color:#c8391a;font-family:'Roboto',sans-serif;font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px}
+.btn-draw:hover{background:#c8391a;color:#fff}
+.btn-draw:disabled{opacity:.3;cursor:not-allowed;border-color:#444;color:#444}
+.btn-draw:disabled:hover{background:transparent;color:#444}
+.btn-newhand{background:#1a2a3a;border:1px solid #2a4a5a;border-radius:6px;padding:8px 14px;color:#7ab8d4;font-family:'Roboto',sans-serif;font-size:13px;cursor:pointer}
+.btn-newhand:hover{background:#1e3040}
+.btn-newhand:disabled{opacity:.3;cursor:not-allowed}
+.btn-reset{background:none;border:1px solid #2a2520;border-radius:6px;padding:8px 14px;color:#888;font-family:'Roboto',sans-serif;font-size:13px;cursor:pointer}
+.btn-reset:hover{border-color:#444;color:#888}
+.th-hint{font-size:11px;color:#7a6e64;font-family:'Roboto',sans-serif;margin-top:4px}
+.th-deck-empty{font-size:11px;color:#c8391a;font-family:'Roboto',sans-serif;margin-top:4px}
+
+/* ── VERSION LOG ──────────────────────────────────────────────── */
+.vitem{background:#1a1814;border:1px solid #2a2520;border-radius:6px;margin-bottom:8px;overflow:hidden}
+.vhd{padding:9px 14px;background:#111;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.vn{font-size:13px;color:#e8dcc8;font-family:'Roboto',sans-serif}
+.vm{font-size:10px;color:#7a6e64;font-family:'Roboto',sans-serif}
+.vrow{display:grid;grid-template-columns:38px 90px 1fr;gap:10px;padding:7px 14px;border-top:1px solid #1e1c18;font-size:11px}
+.vv{color:#7a9a5a;font-family:'Roboto',sans-serif}
+.vd{color:#7a6e64;font-family:'Roboto',sans-serif}
+.vnt{color:#9a8e80;line-height:1.4}
+
+/* ── RULES ────────────────────────────────────────────────────── */
+.rw{max-width:540px}
+.rw h2{font-size:12px;color:#c8b090;letter-spacing:.08em;text-transform:uppercase;margin:18px 0 8px;font-weight:normal}
+.rw p{font-size:12px;color:#aaa;line-height:1.7;margin-bottom:9px}
+.rt{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
+.rt th{text-align:left;padding:5px 10px;border-bottom:1px solid #2a2520;color:#7a6e64;font-weight:normal;font-size:10px}
+.rt td{padding:5px 10px;border-bottom:1px solid #1a1814;color:#aaa;vertical-align:top}
+.rt td:first-child{color:#c8b090;font-family:'Roboto',sans-serif;white-space:nowrap}
+.tip{background:#1a1814;border-left:2px solid #c8391a;padding:10px 14px;margin:10px 0;font-size:12px;color:#9a8e80;line-height:1.6}
+
+/* ── PRINT OVERLAY ────────────────────────────────────────────── */
+
+/* ── DECKS ────────────────────────────────────────────────────── */
+.deck-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;padding:10px 12px;background:#1a1814;border:1px solid #2a2520;border-radius:6px}
+.deck-toolbar-label{font-size:11px;color:#7a6e64;font-family:'Roboto',sans-serif}
+.btn-dk{background:none;border:1px solid #2a2520;border-radius:4px;padding:5px 10px;font-family:'Roboto',sans-serif;font-size:11px;color:#999;cursor:pointer;white-space:nowrap}
+.btn-dk:hover{border-color:#555;color:#aaa}
+.btn-dk.hi{background:#1a3a1a;color:#7ec87e;border-color:#2a4a2a}
+.btn-dk.hi:hover{background:#1e441e}
+.btn-dk.red{color:#c8391a;border-color:#3a1a1a}
+.btn-dk.red:hover{background:#2a1010;border-color:#c8391a}
+.deck-list{display:flex;flex-direction:column;gap:8px;max-width:600px}
+.deck-item{background:#1a1814;border:1px solid #2a2520;border-radius:6px;overflow:hidden}
+.deck-item-hd{padding:10px 14px;display:flex;align-items:center;gap:10px;background:#111}
+.deck-item-name{font-size:14px;color:#e8dcc8;font-family:'Roboto',sans-serif;font-weight:700;flex:1}
+.deck-item-meta{font-size:10px;color:#7a6e64;font-family:'Roboto',sans-serif}
+.deck-item-acts{display:flex;gap:6px;padding:8px 14px;flex-wrap:wrap}
+.share-box{padding:8px 14px;background:#0d0b08;border-top:1px solid #1a1814}
+.share-url{width:100%;font-family:'Roboto',monospace;font-size:10px;background:#111;color:#7ec87e;border:1px solid #2a4a2a;border-radius:4px;padding:5px 8px;cursor:pointer;outline:none}
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:900}
+.modal-box{background:#1a1714;border:1px solid #c8391a;border-radius:8px;padding:22px 26px;min-width:280px;max-width:400px;width:90%}
+.modal-box h3{font-size:15px;color:#f0e6c8;font-family:'Roboto',sans-serif;margin-bottom:12px;font-weight:700}
+.modal-box p{font-size:12px;color:#9a8e80;line-height:1.6;margin-bottom:12px}
+.modal-input{width:100%;font-family:'Roboto',sans-serif;font-size:13px;background:#111;color:#e0d8c8;border:1px solid #3a3530;border-radius:4px;padding:7px 10px;outline:none;margin-bottom:12px}
+.modal-input:focus{border-color:#c8391a}
+.modal-row{display:flex;gap:8px}
+.pdfover{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:999}
+.pdfbox{background:#1a1714;border:1px solid #c8391a;border-radius:8px;padding:28px 36px;text-align:center}
+.pdfbox p{color:#c8b090;font-size:14px;margin-bottom:6px;font-family:'Roboto',sans-serif}
+.pdfbox small{color:#444;font-size:11px;font-family:'Roboto',sans-serif}
+.pdfbw{width:200px;height:4px;background:#2a2520;border-radius:2px;margin:12px auto 0}
+.pdfb{height:100%;background:#c8391a;border-radius:2px;transition:width .2s}
+</style>
+</head>
+<body>
+<header>
+  <button class="hamburger" onclick="toggleSidebar()" id="ham-btn" aria-label="Menu">☰</button>
+  <h1>POST FICTION</h1>
+  <span id="hdr">Card Database · loading…</span>
+</header>
+<div class="sidebar-overlay" id="sb-overlay" onclick="toggleSidebar()"></div>
+<div class="shell">
+  <aside id="sb"></aside>
+  <main id="mn"><p style="color:#444;font-family:'Roboto',sans-serif;padding:2rem">Loading cards…</p></main>
+</div>
+<script>
+// ── DATA SOURCE ───────────────────────────────────────────────────────────────
+// Local:         'cards.csv'
+// Google Sheets: paste your published CSV URL here instead of 'cards.csv'
+const DATA_SOURCE = 'cards.csv';
+
+// ── Fallback layout (used if layouts/ files missing) ─────────────────────────
+let LAYOUT = {
+  name:     { left:4,  top:2,    fontSize:11,  color:'#111111', fontFamily:'Roboto',    fontWeight:'700', opacity:1 },
+  cost:     { right:3, top:1.5,  fontSize:13,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+  art:      { left:5,  top:10.7, width:89.8,   height:40.9, opacity:1 },
+  atk:      { left:4,  top:53,   fontSize:11,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+  typeline: { left:0,  right:0,  top:52.5, fontSize:11, color:'#111111', fontFamily:'Roboto', fontWeight:'700', opacity:1 },
+  def:      { right:4, top:53,   fontSize:11,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+  effect:   { left:4,  right:4,  top:60, bottom:8, fontSize:9, color:'#111111', lineHeight:1.45, fontFamily:'Roboto', fontWeight:'700', opacity:1, textAlign:'left', fontStyle:'normal', verticalAlign:'top' },
+  flavor:   { left:4,  right:4,  top:75, bottom:8, fontSize:7.5, color:'#444444', fontFamily:'Roboto', fontWeight:'400', opacity:1, textAlign:'left', fontStyle:'italic', verticalAlign:'bottom' },
+  setlabel: { left:4,  bottom:1, fontSize:6,   color:'#666666', fontFamily:'Roboto', fontWeight:'400', opacity:1 }
+};
+
+// ── Frame images — from card's 'frames' column, fallback to type ──────────────
+const TYPE_FRAMES = { Creature:'Creatures.png', Spell:'Magic.png', Magic:'Magic.png', Reaction:'Reactions.png' };
+function getFrame(card){ return 'frames/' + (card.frames || TYPE_FRAMES[card.type] || 'Creatures.png'); }
+
+// ── Per-frame layouts stored in layouts/ folder ───────────────────────────────
+const LAYOUT_CACHE = {};
+function mergeLayoutWithDefaults(loaded){
+  const def = {
+    name:     { left:4,  top:2,    fontSize:11,  color:'#111111', fontFamily:'Roboto',    fontWeight:'700', opacity:1 },
+    cost:     { right:3, top:1.5,  fontSize:13,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+    art:      { left:5,  top:10.7, width:89.8,   height:40.9, opacity:1 },
+    atk:      { left:4,  top:53,   fontSize:11,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+    typeline: { left:0,  right:0,  top:52.5, fontSize:11, color:'#111111', fontFamily:'Roboto', fontWeight:'700', opacity:1 },
+    def:      { right:4, top:53,   fontSize:11,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+    effect:   { left:4,  right:4,  top:60, bottom:8, fontSize:9, color:'#111111', lineHeight:1.45, fontFamily:'Roboto', fontWeight:'700', opacity:1, textAlign:'left', fontStyle:'normal', verticalAlign:'top' },
+    flavor:   { left:4,  right:4,  top:75, bottom:8, fontSize:7.5, color:'#444444', fontFamily:'Roboto', fontWeight:'400', opacity:1, textAlign:'left', fontStyle:'italic', verticalAlign:'bottom' },
+    setlabel: { left:4,  bottom:1, fontSize:6,   color:'#666666', fontFamily:'Roboto', fontWeight:'400', opacity:1 }
+  };
+  const result = {};
+  Object.keys(def).forEach(zone=>{
+    result[zone] = Object.assign({}, def[zone], loaded[zone]||{});
+  });
+  Object.keys(loaded).forEach(zone=>{ if(!result[zone]) result[zone]=loaded[zone]; });
+  return result;
+}
+
+async function loadLayout(){
+  try{
+    const r = await fetch('layouts/default.json?v='+Date.now());
+    if(r.ok) LAYOUT_CACHE['default'] = mergeLayoutWithDefaults(await r.json());
+  }catch(e){}
+  const frameNames = [...new Set(Object.values(TYPE_FRAMES))];
+  for(const f of frameNames){
+    const name = f.replace('.png','');
+    try{
+      const r = await fetch('layouts/'+name+'.json?v='+Date.now());
+      if(r.ok) LAYOUT_CACHE[name] = mergeLayoutWithDefaults(await r.json());
+    }catch(e){}
+  }
+}
+function getLayout(card){
+  const frameName = (card.frames||TYPE_FRAMES[card.type]||'Creatures.png').replace('.png','');
+  return LAYOUT_CACHE[frameName] || LAYOUT_CACHE['default'] || LAYOUT;
+}
+
+// ── Set label ─────────────────────────────────────────────────────────────────
+const SET_LABEL = 'Post Fiction Playtest #2';
+
+const MAX_HAND = 10;
+let CARDS = [], S = {tab:'gallery',arch:'All',type:'All',search:'',q:{},exp:null};
+const ZOOM_SIZES=[110,140,168,210,280];
+let ZOOM_W=parseInt(localStorage.getItem('pf_zoom')||'168');
+let TH = {pool:[],hand:[]};
+
+// ── CSV parser ────────────────────────────────────────────────────────────────
+function parseCSV(txt){
+  const lines=txt.trim().split('\n'), hdrs=lines[0].split(',').map(h=>h.trim());
+  return lines.slice(1).filter(l=>l.trim()).map(line=>{
+    const vals=[]; let cur='',inQ=false;
+    for(const ch of line){if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=ch;}
+    vals.push(cur.trim());
+    const o={};
+    hdrs.forEach((h,i)=>o[h]=vals[i]||'');
+    o.cost=o.cost!==''?Number(o.cost):0;
+    o.atk=o.atk!==''?Number(o.atk):null;
+    o.def=o.def!==''?Number(o.def):null;
+    o.subtype=o.subtype||o.type2||'';
+    o.type2=o.type2||'';
+    o.flavor=o.flavortext||o.flavor||'';
+    o.frames=o.frames||o.frame||'';
+    o.hidden=o.hidden==='yes'||o.hidden==='true';
+    o.keywords=o.keywords?o.keywords.split('|').map(k=>k.trim()).filter(Boolean):[];
+    return o;
+  });
+}
+
+async function loadCards(){
+  await loadLayout();
+  try{
+    const r=await fetch(DATA_SOURCE+'?v='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    CARDS=parseCSV(await r.text());
+    document.getElementById('hdr').textContent='Card Database · v0.4 · '+CARDS.length+' cards';
+    checkURLDeck();
+    render();
+  }catch(e){
+    document.getElementById('mn').innerHTML=`<p class="empty">Could not load ${DATA_SOURCE}<br><br>${e.message}<br><br>Make sure cards.csv is in the same folder as index.html.</p>`;
+  }
+}
+
+const totalQ=()=>Object.values(S.q).reduce((a,b)=>a+b,0);
+const uniq=k=>['All',...new Set(CARDS.map(c=>c[k]).filter(Boolean))];
+
+function filtered(){
+  return CARDS.filter(c=>{
+    if(c.hidden) return false;
+    if(S.arch!=='All'&&c.archetype!==S.arch)return false;
+    if(S.type!=='All'&&c.type!==S.type)return false;
+    if(S.search){const s=S.search.toLowerCase();if(!c.name.toLowerCase().includes(s)&&!c.effect.toLowerCase().includes(s)&&!c.archetype.toLowerCase().includes(s)&&!c.keywords.join(' ').toLowerCase().includes(s))return false;}
+    return true;
+  });
+}
+
+function toggleQ(id){const n=S.q[id]||0;S.q[id]=n>=3?0:n+1;render();}
+
+// Dynamic effect font size based on text length
+function efs(len){
+  if(len>280)return'6.5px';if(len>220)return'7px';
+  if(len>160)return'7.5px';if(len>100)return'8px';
+  return'9px';
+}
+
+// ── Layout-driven inline styles ───────────────────────────────────────────────
+function zs(zone, extra, layout){
+  const L = layout || LAYOUT;
+  const z=L[zone]||{};
+  const p=[];
+  if(z.left!==undefined)p.push('left:'+z.left+'%');
+  if(z.right!==undefined)p.push('right:'+z.right+'%');
+  if(z.top!==undefined)p.push('top:'+z.top+'%');
+  if(z.bottom!==undefined)p.push('bottom:'+z.bottom+'%');
+  if(z.width!==undefined)p.push('width:'+z.width+'%');
+  // Skip height for bottom-anchored zones
+  if(z.height!==undefined&&z.bottom===undefined)p.push('height:'+z.height+'%');
+  if(z.fontSize!==undefined)p.push('font-size:'+z.fontSize+'px');
+  if(z.color!==undefined)p.push('color:'+z.color);
+  if(z.fontFamily!==undefined)p.push("font-family:'"+z.fontFamily+"',sans-serif");
+  if(z.fontWeight!==undefined)p.push('font-weight:'+z.fontWeight);
+  if(z.lineHeight!==undefined)p.push('line-height:'+z.lineHeight);
+  if(z.opacity!==undefined&&z.opacity!==1)p.push('opacity:'+z.opacity);
+  if(z.textAlign!==undefined)p.push('text-align:'+z.textAlign);
+  if(z.fontStyle!==undefined)p.push('font-style:'+z.fontStyle);
+  if(z.verticalAlign!==undefined){
+    p.push('display:flex','flex-direction:column','overflow:hidden');
+    p.push('justify-content:'+(z.verticalAlign==='bottom'?'flex-end':z.verticalAlign==='middle'?'center':'flex-start'));
+    if(z.top===undefined&&z.height===undefined)p.push('min-height:8%');
+  }
+  if(extra)p.push(extra);
+  return p.join(';');
+}
+
+// ── Card HTML — frame + layout.json-driven text overlays ─────────────────────
+function cardHTML(card, sm=false, hand=false, displayW=null){
+  const inQ=(S.q[card.id]||0)>0;
+  const frame=getFrame(card);
+  const L=getLayout(card);
+  const art=card.art?`art/${card.art}`:'';
+  const isC=card.type==='Creature';
+  const typeLine=card.type2||card.subtype||(card.type==='Spell'?'Magic':card.type);
+  const click=hand?'':`onclick="toggleQ('${card.id}')"`;
+  const sz=sm?' sm':'';
+  const hc=hand?' hc':'';
+
+  // Layout font sizes are calibrated for the 480px designer (1x scale).
+  // Scale = displayW / 480. Default gallery=168px, small=126px.
+  const cardW = displayW || (sm ? 126 : 168);
+  const cardH = Math.round(cardW * (672/480));
+  const scale = cardW / 480;
+
+  const al=L.art||{};
+  const artOp=al.opacity!==undefined?al.opacity:1;
+  const artSt=`position:absolute;left:${al.left||5}%;top:${al.top||10.7}%;width:${al.width||89.8}%;height:${al.height||40.9}%;overflow:hidden;z-index:0;opacity:${artOp}`;
+
+  // Builds inline style string for a zone, scaling font sizes
+  function zsf(zone, overrideFontPx){
+    const z=L[zone]||{};
+    const p=[];
+    if(z.left!==undefined)  p.push(`left:${z.left}%`);
+    if(z.right!==undefined) p.push(`right:${z.right}%`);
+    if(z.top!==undefined)   p.push(`top:${z.top}%`);
+    if(z.bottom!==undefined)p.push(`bottom:${z.bottom}%`);
+    if(z.width!==undefined) p.push(`width:${z.width}%`);
+    // Skip height for bottom-anchored zones so text grows upward
+    if(z.height!==undefined&&z.bottom===undefined)p.push(`height:${z.height}%`);
+    const fs = overrideFontPx !== undefined ? overrideFontPx : (z.fontSize !== undefined ? z.fontSize : null);
+    if(fs !== null) p.push(`font-size:${Math.round(fs*scale*10)/10}px`);
+    if(z.color!==undefined)    p.push(`color:${z.color}`);
+    if(z.fontFamily!==undefined)p.push(`font-family:'${z.fontFamily}',sans-serif`);
+    if(z.fontWeight!==undefined)p.push(`font-weight:${z.fontWeight}`);
+    if(z.lineHeight!==undefined)p.push(`line-height:${z.lineHeight}`);
+    if(z.opacity!==undefined&&z.opacity!==1)p.push(`opacity:${z.opacity}`);
+    if(z.textAlign!==undefined)p.push(`text-align:${z.textAlign}`);
+    if(z.fontStyle!==undefined)p.push(`font-style:${z.fontStyle}`);
+    if(z.verticalAlign!==undefined){
+      p.push('display:flex','flex-direction:column','overflow:hidden');
+      p.push('justify-content:'+(z.verticalAlign==='bottom'?'flex-end':z.verticalAlign==='middle'?'center':'flex-start'));
+      if(z.top===undefined&&z.height===undefined)p.push('min-height:8%');
+    }
+    return p.join(';');
+  }
+
+  // Effect font — dynamic shrink based on length, then scaled
+  const baseEffFs = (L.effect&&L.effect.fontSize) ? L.effect.fontSize : 9;
+  const len = card.effect ? card.effect.length : 0;
+  const dynEffFs = baseEffFs * (len>280?.70:len>220?.80:len>160?.88:len>100?.94:1);
+
+  return `<div class="pf-card${sz}${inQ&&!hand?' q':''}${hc}" ${click}>
+  ${inQ&&!hand?`<div class="qbdg">x${S.q[card.id]}</div>`:''}
+  <div style="${artSt}">
+    ${art
+      ?`<img src="${art}" style="width:100%;height:100%;object-fit:cover;display:block" alt="" onerror="this.parentNode.innerHTML='<div style=width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(7*scale)}px;color:#aaa>[ art ]</div>'">`
+      :`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(7*scale)}px;color:#aaa">[ art ]</div>`}
+  </div>
+  <img class="c-frame" src="${frame}" alt="">
+  <span style="position:absolute;z-index:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72%;${zsf('name')}">${card.name}</span>
+  <span style="position:absolute;z-index:2;${zsf('cost')}">${card.cost}</span>
+  ${isC?`<span style="position:absolute;z-index:2;${zsf('atk')}">${card.atk}</span>`:''}
+  <span style="position:absolute;z-index:2;text-align:center;${zsf('typeline')}">${typeLine}</span>
+  ${isC?`<span style="position:absolute;z-index:2;${zsf('def')}">${card.def}</span>`:''}
+  <div style="position:absolute;z-index:2;overflow:hidden;${zsf('effect',dynEffFs)}">${card.effect}</div>
+  ${card.flavor?`<div style="position:absolute;z-index:2;left:${(L.flavor?.left??4)}%;right:${(L.flavor?.right??4)}%;top:${(L.flavor?.top??75)}%;bottom:${(L.flavor?.bottom??8)}%"><div style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;font-size:${Math.round((L.flavor?.fontSize??7.5)*scale*10)/10}px;color:${L.flavor?.color??'#444'};font-family:'${L.flavor?.fontFamily??'Roboto'}',sans-serif;font-weight:${L.flavor?.fontWeight??'400'};font-style:${L.flavor?.fontStyle??'italic'};text-align:${L.flavor?.textAlign??'left'};line-height:${L.flavor?.lineHeight??1.4};opacity:${L.flavor?.opacity??1}">${card.flavor}</div></div>`:''}
+  <div style="position:absolute;z-index:2;${zsf('setlabel')}">${card.id} · ${SET_LABEL}</div>
+</div>`;
+}
+
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function renderSB(){
+  const qn=totalQ();
+  const tabs=[['gallery','Gallery'],['testhand','Test Hand'],['decks','My Decks'],['log','Version log'],['print',`Print queue${qn?`<span class="nbadge">${qn}</span>`:''}`],['rules','Rules']];
+  return `<div class="nlbl">Navigate</div>
+  ${tabs.map(([id,l])=>`<button class="nbtn${S.tab===id?' on':''}" onclick="go('${id}')">${l}</button>`).join('')}
+  <div class="nfoot">${CARDS.length} cards<br>v0.4 draft<br>${uniq('archetype').length-1} archetypes</div>`;
+}
+
+// ── Gallery ───────────────────────────────────────────────────────────────────
+function renderGallery(){
+  const cards=filtered(),qn=totalQ();
+  return `<div class="stitle">Card Gallery</div>
+  <div class="fbar">
+    <input type="text" placeholder="Search…" value="${S.search}" oninput="S.search=this.value;render()">
+    <select onchange="S.arch=this.value;render()">${uniq('archetype').map(a=>`<option${S.arch===a?' selected':''}>${a}</option>`).join('')}</select>
+    <select onchange="S.type=this.value;render()">${uniq('type').map(t=>`<option${S.type===t?' selected':''}>${t}</option>`).join('')}</select>
+    <span class="clbl">${cards.length} card${cards.length!==1?'s':''}</span>
+    ${qn?`<button class="btn-dk" onclick="quickShare()" style="margin-left:auto" title="Share current queue">⬆ Share</button><button class="btn-dk hi" onclick="saveDeckPrompt()">Save deck</button><button class="bgrn" onclick="go('print')" style="margin-left:4px">Print (${qn})</button>`:''}
+  </div>
+  ${urlDeckBanner()}
+  <div style="display:flex;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <p style="font-size:11px;color:#7a6e64;font-family:'Roboto',sans-serif;margin:0">
+      Click a card to add to queue · cycles 0→1→2→3→0
+    </p>
+    ${zoomBar()}
+  </div>
+  ${cards.length===0?`<p class="empty">No cards match.</p>`:`<div class="cgrid" style="--card-w:${ZOOM_W}px;--card-h:${Math.round(ZOOM_W*672/480)}px">${cards.map(c=>cardHTML(c,false,false,ZOOM_W)).join('')}</div>`}`;
+}
+
+// ── Test Hand ─────────────────────────────────────────────────────────────────
+function buildPool(){
+  const pool=[];
+  Object.entries(S.q).filter(([,n])=>n>0).forEach(([id,n])=>{
+    const card=CARDS.find(c=>c.id===id);
+    if(card) for(let i=0;i<n;i++) pool.push(Object.assign({},card,{_uid:id+'-'+i}));
+  });
+  return pool;
+}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function thNewHand(){TH.pool=shuffle(buildPool());TH.hand=[];for(let i=0;i<5&&TH.pool.length>0;i++)TH.hand.push(TH.pool.pop());renderTH();}
+function thDraw(){if(TH.pool.length===0||TH.hand.length>=MAX_HAND)return;TH.hand.push(TH.pool.pop());renderTH();}
+function thReset(){TH.pool=[];TH.hand=[];renderTH();}
+
+function renderTH(){
+  const total=buildPool().length, hasQ=totalQ()>0, canDraw=TH.pool.length>0&&TH.hand.length<MAX_HAND;
+  document.getElementById('sb').innerHTML=renderSB();
+  document.getElementById('mn').innerHTML=`
+  <div class="stitle">Test Hand</div>
+  <div class="th-bar">
+    <div class="th-info">
+      <strong>Deck:</strong> ${total} cards &nbsp;·&nbsp;
+      <strong>Remaining:</strong> ${TH.pool.length} &nbsp;·&nbsp;
+      <strong>Hand:</strong> ${TH.hand.length} / ${MAX_HAND}
+      ${TH.pool.length===0&&TH.hand.length>0?`<div class="th-deck-empty">Deck exhausted</div>`:''}
+      ${!hasQ?`<div class="th-hint">Queue cards in the gallery first to build your deck.</div>`:''}
+    </div>
+    <button class="btn-draw" onclick="thDraw()" ${canDraw&&hasQ?'':'disabled'}>&#127136; Draw</button>
+    <button class="btn-newhand" onclick="thNewHand()" ${hasQ?'':'disabled'}>New Hand</button>
+    <button class="btn-reset" onclick="thReset()">Reset</button>
+  </div>
+  <div class="stitle">Hand — ${TH.hand.length} card${TH.hand.length!==1?'s':''}</div>
+  ${TH.hand.length===0
+    ?`<p class="empty">${hasQ?'Hit New Hand to deal 5, or Draw to add one card at a time.':'No cards queued — go to gallery and click cards to add them.'}</p>`
+    :`<div class="cgrid" style="--card-w:${ZOOM_W}px;--card-h:${Math.round(ZOOM_W*672/480)}px">${TH.hand.map(c=>cardHTML(c,false,true,ZOOM_W)).join('')}</div>`}`;
+}
+
+// ── Version log ───────────────────────────────────────────────────────────────
+function renderLog(){
+  return `<div class="stitle">Version Log</div>
+  <p style="font-size:12px;color:#888;margin-bottom:14px">Click any card to expand.</p>
+  <div style="max-width:580px">${CARDS.map(card=>`
+    <div class="vitem">
+      <div class="vhd" onclick="toggleLog('${card.id}')"><span class="vn">${card.name}</span><span class="vm">${card.id} · v${card.version}</span></div>
+      ${S.exp===card.id?`<div><div class="vrow"><span class="vv">${card.version}</span><span class="vd">${card.version_date}</span><span class="vnt">${card.version_note}</span></div></div>`:''}
+    </div>`).join('')}</div>`;
+}
+
+// ── Print queue ───────────────────────────────────────────────────────────────
+function renderPrint(){
+  const items=Object.entries(S.q).filter(([,n])=>n>0).flatMap(([id,n])=>{const c=CARDS.find(x=>x.id===id);return c?Array(n).fill(c):[];});
+  return `<div class="stitle">Print Queue</div>
+  ${items.length===0?`<p class="empty">Queue is empty — add cards from the gallery.</p>`:`
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <button class="bgrn" onclick="printCards()">Print cards</button>
+    <button class="bpln" onclick="S.q={};render()">Clear queue</button>
+    <span class="clbl">${items.length} card${items.length!==1?'s':''}</span>
+  </div>
+  <p style="font-size:11px;color:#7a6e64;font-family:'Roboto',sans-serif;margin-bottom:14px">
+    Cards print at 63 mm × 88 mm. Print at Actual Size with Background Graphics enabled.
+  </p>
+  <div class="cgrid">${items.map(c=>cardHTML(c,true)).join('')}</div>`}`;
+}
+
+// ── Rules ─────────────────────────────────────────────────────────────────────
+function renderRules(){
+  return `<div class="stitle">Core Rules — v0.7 Working Draft</div>
+  <div class="rw">
+
+    <h2>1. Overview</h2>
+    <p>Post Fiction is a two-player card game where players begin with a set amount of the core resource, Charge. Players build their field and battle their opponents by spending Charge each turn. As players deal damage, they gain Overcharge — a bonus resource that raises their total spending power and tracks progress toward victory. The first player to reach 5 Overcharge enters Sudden Death — any damage they deal from that point wins the game.</p>
+    <p>The core loop rewards careful Charge management. Every action has a cost, so every turn is a series of meaningful decisions about what to commit to and what to hold back.</p>
+
+    <h2>2. Win Conditions</h2>
+    <p><strong>Sudden Death.</strong> Each player tracks their own Overcharge independently, starting at 0. Overcharge rises when unblocked damage reaches the opposing player. The full amount of unblocked damage is added to the active player's Overcharge point for point.</p>
+    <p>Sudden Death is checked at the start of your Action Phase. If your Overcharge is 5 or higher at that moment, you are in Sudden Death for the entirety of that turn. Any damage you deal wins the game immediately.</p>
+    <p>Overcharge gained during your turn is added to your track right away, but cannot trigger Sudden Death until the start of your next Action Phase. This means if you reach 5 Overcharge mid-turn, you finish your turn normally and enter Sudden Death at the start of your following turn.</p>
+    <div class="tip">This creates a natural "final round" dynamic. When a player hits 5 Overcharge, both players know Sudden Death is likely coming next turn. The opponent has one full turn to respond.</div>
+    <p><strong>Deck Out.</strong> If a player is required to draw a card but their deck is empty, they lose. This acts as a fail-safe against stalled games.</p>
+
+    <h2>3. Setup</h2>
+    <p>To set up a game of Post Fiction:</p>
+    <ul style="padding-left:18px;color:#aaa;font-size:12px;line-height:1.9">
+      <li>Each player shuffles their deck and places it face down in front of them.</li>
+      <li>Each player draws 5 cards as their opening hand.</li>
+      <li>Both players set their Overcharge to 0 and their Current to 5.</li>
+      <li>Determine who goes first by any method both players agree on.</li>
+      <li>Player one takes their first turn. They may play cards but cannot attack on this turn.</li>
+    </ul>
+    <div class="tip">The no-attack rule on turn one exists to give player two a fair chance to establish their field before combat begins.</div>
+
+    <h2>4. Turn Structure</h2>
+    <p>Each turn follows four steps in order:</p>
+    <table class="rt">
+      <tr><th>Step</th><th>What happens</th></tr>
+      <tr><td>1. Recharge</td><td>Reset your Charge back to your Current.</td></tr>
+      <tr><td>2. Draw</td><td>Draw 1 card from the top of your deck. This is free and automatic.</td></tr>
+      <tr><td>3. Action Phase</td><td>Spend your Charge on any combination of available actions in any order you choose. Playing cards, attacking, and activating abilities all happen here.</td></tr>
+      <tr><td>4. End Turn</td><td>Pass to your opponent. Any Charge you have not spent remains available to use on reactions during your opponent's turn.</td></tr>
+    </table>
+    <div class="tip">Charge carry-over is intentional and important. Holding Charge in reserve is your only form of defense against your opponent's actions.</div>
+
+    <h2>5. The Resource System</h2>
+    <p><strong>Charge</strong> is the universal resource of Post Fiction. Everything costs Charge — playing cards, attacking, and activating abilities. Nothing is free except drawing your one card per turn and blocking in response to an attack. Both players begin the game with a Current of 5.</p>
+    <p><strong>Overcharge</strong> is gained when unblocked damage reaches the opposing player. The full damage value is added to the active player's Overcharge — not the player being hit. Each point of Overcharge raises your Current by 1 on a one-for-one basis. A player at 3 Overcharge has a Current of 8. A player at 5 Overcharge has a Current of 10 and is in Sudden Death.</p>
+    <p>Overcharge gained during combat is added to the track immediately but does not increase your available Charge until your next Recharge step. Overcharge can be spent the same as Charge when paying for card effects. Both players gain Overcharge independently, so both Current values can rise at the same time. This is intentional.</p>
+    <p><strong>Current</strong> is the total amount of Charge available to you at the start of each turn. It equals your base Charge of 5 plus any Overcharge you have accumulated. Current is what resets during your Recharge step each turn.</p>
+    <table class="rt">
+      <tr><th>Current</th><th>Overcharge</th></tr>
+      <tr><td>5</td><td>Starting Current</td></tr>
+      <tr><td>6</td><td>1 Overcharge</td></tr>
+      <tr><td>7</td><td>2 Overcharge</td></tr>
+      <tr><td>8</td><td>3 Overcharge</td></tr>
+      <tr><td>9</td><td>4 Overcharge</td></tr>
+      <tr><td>10 — Sudden Death</td><td>5 Overcharge</td></tr>
+    </table>
+    <table class="rt">
+      <tr><td>Charge resets each turn?</td><td>Yes, at the start of your turn during the Recharge step.</td></tr>
+      <tr><td>Unspent Charge carries over?</td><td>Yes, for reactions during the opponent's turn only.</td></tr>
+      <tr><td>When does new Current apply?</td><td>At your next Recharge, not immediately when Overcharge is gained.</td></tr>
+    </table>
+
+    <h2>6. Playing Cards</h2>
+    <p>During your Action Phase you may play any number of cards from your hand as long as you can pay their Charge cost.</p>
+    <table class="rt">
+      <tr><th>Type</th><th>Rules</th></tr>
+      <tr><td>Creatures</td><td>Played onto your field. They have an Attack value and a Defense value and persist on the field until destroyed.</td></tr>
+      <tr><td>Magic</td><td>One-time effects. Pay the Charge cost, resolve the effect, place the card in your discard pile. Some Magic cards have continual effects and remain on the field for reasons specified by the card.</td></tr>
+      <tr><td>Reactions</td><td>Played during your opponent's turn in response to a specific trigger. The card itself specifies when it can be played. Once the trigger moment passes without a response, the window is closed.</td></tr>
+    </table>
+
+    <h2>7. Combat</h2>
+    <p>Combat is initiated during the Action Phase by spending 1 Charge to declare an attack. Paying this cost allows the attacking player to choose any number of their creatures to participate. The defending player then declares blockers for free.</p>
+    <p><strong>Declaring an Attack.</strong> Spend 1 Charge to declare an attack. Choose any number of your creatures to attack with. Creatures do not exhaust after attacking and remain available to block on the opponent's turn. There is no summoning sickness — creatures may attack or block on the same turn they are played.</p>
+    <p><strong>Declaring Blockers.</strong> Blocking is always free. The defending player assigns any of their creatures to block attacking creatures. Each blocker may only block one attacker. Blockers do not exhaust after blocking and remain available to attack on the defending player's next turn.</p>
+    <p>A defending creature uses its Defense stat to determine whether it survives. If the attacker's Attack is lower than the blocker's Defense, the attacker is destroyed. Defenders do not deal lasting damage back — combat outcomes are resolved cleanly based on the stat comparison alone.</p>
+    <div class="tip">Some creatures have keywords that allow them to block multiple attackers. Unless a card specifically states otherwise, the one blocker per attacker rule applies.</div>
+    <p><strong>Resolving Combat.</strong> Each combat is a clean, one-time comparison. The higher Attack wins. In a tie, both creatures are destroyed. Creatures return to their full Attack and Defense values after every combat. Damage does not carry over between turns and there is no need to track a creature's current health.</p>
+    <table class="rt">
+      <tr><th>Outcome</th><th>Result</th></tr>
+      <tr><td>Attack exceeds Defense</td><td>The blocker is destroyed. The attacker survives.</td></tr>
+      <tr><td>Attack equals Defense</td><td>Both the attacker and the blocker are destroyed.</td></tr>
+      <tr><td>Attack less than Defense</td><td>The attacker is destroyed. The blocker survives untouched.</td></tr>
+      <tr><td>Unblocked attackers</td><td>Deal their full Attack value directly to the opposing player's Overcharge track, point for point. This Overcharge is applied immediately as the damage lands.</td></tr>
+    </table>
+    <p><strong>Overcharge Timing During Combat.</strong> Overcharge from unblocked damage is added to the track immediately as it lands. However Sudden Death cannot be triggered mid-combat. If unblocked damage pushes a player to 5 Overcharge during combat, that player does not win immediately — they finish the turn normally and enter Sudden Death at the start of their next Action Phase. Any Overcharge gained during combat does not increase available Charge until the Recharge step of the following turn.</p>
+    <div class="tip">There is always a window between reaching 5 Overcharge and actually being in Sudden Death. Both players know the final round is coming. Use it wisely.</div>
+    <table class="rt">
+      <tr><th>Stat</th><th>What it does</th></tr>
+      <tr><td>Attack</td><td>Damage this creature deals when it fights.</td></tr>
+      <tr><td>Defense</td><td>How much Attack this creature can withstand before being destroyed.</td></tr>
+      <tr><td>Attacking creature uses</td><td>Its Attack stat to deal damage.</td></tr>
+      <tr><td>Defending creature uses</td><td>Its Defense stat to determine survival — no lasting damage is dealt back.</td></tr>
+    </table>
+
+    <h2>8. Hand and Deck</h2>
+    <table class="rt">
+      <tr><td>Starting hand size</td><td>5 cards</td></tr>
+      <tr><td>Cards drawn per turn</td><td>1, free, during the Recharge step</td></tr>
+      <tr><td>Maximum hand size</td><td>10 cards</td></tr>
+      <tr><td>Over hand limit?</td><td>Discard down to 10 at end of turn</td></tr>
+      <tr><td>Deck size</td><td>40 to 60 cards</td></tr>
+      <tr><td>Copies of one card</td><td>Maximum 3 copies per deck</td></tr>
+    </table>
+
+    <h2>9. Key Terms</h2>
+    <table class="rt">
+      <tr><td>Charge</td><td>The universal resource spent on all actions — playing cards, attacking, and activating abilities.</td></tr>
+      <tr><td>Overcharge</td><td>Each player's independent win condition track. Rises from unblocked damage immediately as it lands. Also raises your Current by 1 per point gained, effective next Recharge. Can be spent like Charge on card effects.</td></tr>
+      <tr><td>Current</td><td>The total Charge available to you at the start of each turn. Equals base 5 plus accumulated Overcharge. Resets to this value during your Recharge step.</td></tr>
+      <tr><td>Sudden Death</td><td>The state entered when a player has 5 or more Overcharge at the start of their Action Phase. Any damage they deal that turn wins the game.</td></tr>
+      <tr><td>Reaction Window</td><td>The moment specified on a reaction card when it may be played. Once that moment passes without a response, the window is closed.</td></tr>
+      <tr><td>Deck Out</td><td>Losing condition triggered when a player must draw but has no cards remaining in their deck.</td></tr>
+      <tr><td>Discard Pile</td><td>Where destroyed creatures and used Magic cards go. Cards in the discard pile are out of play unless a card effect says otherwise.</td></tr>
+    </table>
+
+    <h2>10. Quick Reference</h2>
+    <table class="rt">
+      <tr><td>Turn order</td><td>Recharge → Draw → Action Phase → End Turn</td></tr>
+      <tr><td>Sudden Death check</td><td>At the start of your Action Phase only</td></tr>
+      <tr><td>Attack cost</td><td>1 Charge — choose any number of your creatures</td></tr>
+      <tr><td>Blocking cost</td><td>Free — one blocker per attacker unless a card says otherwise</td></tr>
+      <tr><td>Blocker retaliation</td><td>None — outcomes are decided by stat comparison only</td></tr>
+      <tr><td>Combat outcomes</td><td>Attack &gt; Defense: blocker dies. Attack = Defense: both die. Attack &lt; Defense: attacker dies.</td></tr>
+      <tr><td>Damage carry-over?</td><td>No — creatures reset to full stats after every combat</td></tr>
+      <tr><td>Overcharge timing</td><td>Gained immediately. Current increase takes effect next Recharge.</td></tr>
+      <tr><td>Playing a card</td><td>Pay its printed Charge cost</td></tr>
+      <tr><td>Reactions</td><td>Played during opponent's turn using carried-over Charge</td></tr>
+      <tr><td>Summoning sickness</td><td>None — creatures may act on the turn they are played</td></tr>
+      <tr><td>Unblocked damage</td><td>Adds to your Overcharge point for point, immediately</td></tr>
+      <tr><td>Sudden Death triggers at</td><td>5 Overcharge at start of Action Phase (Current becomes 10)</td></tr>
+      <tr><td>Win by</td><td>Any damage while in Sudden Death, or opponent decks out</td></tr>
+      <tr><td>Lose by</td><td>Opponent deals any damage while in Sudden Death, or you deck out</td></tr>
+      <tr><td>Player one turn one</td><td>Cannot attack on the very first turn of the game</td></tr>
+    </table>
+
+  </div>`;
+}
+
+// ── Print window ──────────────────────────────────────────────────────────────
+function printCards(){
+  const items=Object.entries(S.q).filter(([,n])=>n>0)
+    .flatMap(([id,n])=>{const c=CARDS.find(x=>x.id===id);return c?Array(n).fill(c):[];});
+  if(!items.length)return;
+
+  const base=window.location.href.replace(/[^/]*$/,'');
+  // Layout font sizes are calibrated for 480px (designer at 1x).
+  // Print card is 63mm wide → conversion: font_px * (63/480)
+  const PX_TO_MM=63/480;
+
+  function printZs(zone,L,extraMm){
+    const z=L[zone]||{};
+    const p=[];
+    if(z.left!==undefined)p.push('left:'+z.left+'%');
+    if(z.right!==undefined)p.push('right:'+z.right+'%');
+    if(z.top!==undefined)p.push('top:'+z.top+'%');
+    if(z.bottom!==undefined)p.push('bottom:'+z.bottom+'%');
+    if(z.width!==undefined)p.push('width:'+z.width+'%');
+    if(z.height!==undefined&&z.bottom===undefined)p.push('height:'+z.height+'%');
+    const fs=extraMm!==undefined?extraMm:(z.fontSize!==undefined?Math.round(z.fontSize*PX_TO_MM*100)/100:null);
+    if(fs!==null)p.push('font-size:'+fs+'mm');
+    if(z.color!==undefined)p.push('color:'+z.color);
+    if(z.fontFamily!==undefined)p.push("font-family:'"+z.fontFamily+"',sans-serif");
+    if(z.fontWeight!==undefined)p.push('font-weight:'+z.fontWeight);
+    if(z.lineHeight!==undefined)p.push('line-height:'+z.lineHeight);
+    if(z.opacity!==undefined&&z.opacity!==1)p.push('opacity:'+z.opacity);
+    if(z.textAlign!==undefined)p.push('text-align:'+z.textAlign);
+    if(z.fontStyle!==undefined)p.push('font-style:'+z.fontStyle);
+    if(z.verticalAlign!==undefined){
+      p.push('display:flex','flex-direction:column','overflow:hidden');
+      p.push('justify-content:'+(z.verticalAlign==='bottom'?'flex-end':z.verticalAlign==='middle'?'center':'flex-start'));
+      if(z.top===undefined&&z.height===undefined)p.push('min-height:5mm');
+    }
+    return p.join(';');
+  }
+
+  const cardsHTML=items.map(card=>{
+    const frame=getFrame(card);
+    const L=getLayout(card);
+    const art=card.art?base+'art/'+card.art:'';
+    const isC=card.type==='Creature';
+    const typeLine=card.type2||card.subtype||(card.type==='Spell'?'Magic':card.type);
+    const al=L.art||{};
+    const artSt='position:absolute;left:'+(al.left||5)+'%;top:'+(al.top||10.7)+'%;width:'+(al.width||89.8)+'%;height:'+(al.height||40.9)+'%;overflow:hidden;z-index:0;opacity:'+(al.opacity!==undefined?al.opacity:1);
+    const baseEffMm=(L.effect&&L.effect.fontSize?L.effect.fontSize:9)*PX_TO_MM;
+    const len=card.effect.length;
+    const dynEffMm=Math.round((len>280?baseEffMm*.70:len>220?baseEffMm*.80:len>160?baseEffMm*.88:len>100?baseEffMm*.94:baseEffMm)*100)/100;
+
+    return '<div class="pf-card">'
+      +'<div style="'+artSt+'">'
+        +(art?'<img src="'+art+'" style="width:100%;height:100%;object-fit:cover;display:block" crossorigin="anonymous">'
+            :'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5mm;color:#aaa">[ art ]</div>')
+      +'</div>'
+      +'<img style="position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:1;pointer-events:none" src="'+base+frame+'" alt="">'
+      +'<span style="position:absolute;z-index:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72%;'+printZs('name',L)+'">'+card.name+'</span>'
+      +'<span style="position:absolute;z-index:2;'+printZs('cost',L)+'">'+card.cost+'</span>'
+      +(isC?'<span style="position:absolute;z-index:2;'+printZs('atk',L)+'">'+card.atk+'</span>':'')
+      +'<span style="position:absolute;z-index:2;text-align:center;'+printZs('typeline',L)+'">'+typeLine+'</span>'
+      +(isC?'<span style="position:absolute;z-index:2;'+printZs('def',L)+'">'+card.def+'</span>':'')
+      +'<div style="position:absolute;z-index:2;overflow:hidden;'+printZs('effect',L,dynEffMm)+'">'+card.effect+'</div>'
+      +(card.flavor?'<div style="position:absolute;z-index:2;left:'+(L.flavor?.left??4)+'%;right:'+(L.flavor?.right??4)+'%;top:'+(L.flavor?.top??75)+'%;bottom:'+(L.flavor?.bottom??8)+'%"><div style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;font-size:'+Math.round((L.flavor?.fontSize??7.5)*(63/480)*100)/100+'mm;color:'+(L.flavor?.color??'#444')+';font-family:\'+'+(L.flavor?.fontFamily??'Roboto')+'\',sans-serif;font-style:'+(L.flavor?.fontStyle??'italic')+';font-weight:'+(L.flavor?.fontWeight??'400')+';text-align:'+(L.flavor?.textAlign??'left')+'">'+card.flavor+'</div></div>':'')
+      +'<div style="position:absolute;z-index:2;'+printZs('setlabel',L)+'">'+card.id+' \u00b7 '+SET_LABEL+'</div>'
+      +'</div>';
+  }).join('');
+
+  const win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Post Fiction \u2014 Print</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Audiowide&family=Oswald:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{background:#fff;font-family:Roboto,sans-serif}'
+    +'.toolbar{background:#111;color:#f0e6c8;padding:10px 20px;display:flex;align-items:center;gap:14px;font-size:13px}'
+    +'.tbtn-print{background:#c8391a;color:#fff;border:none;border-radius:4px;padding:7px 16px;font-family:Roboto,sans-serif;font-size:13px;cursor:pointer}'
+    +'.tbtn-close{background:none;color:#888;border:1px solid #444;border-radius:4px;padding:7px 12px;font-family:Roboto,sans-serif;font-size:13px;cursor:pointer}'
+    +'.print-grid{display:grid;grid-template-columns:repeat(3,63mm);gap:3mm;padding:8mm}'
+    +'.pf-card{width:63mm;height:88mm;position:relative;overflow:hidden;page-break-inside:avoid}'
+    +'@media print{.toolbar{display:none}body{margin:0}.print-grid{padding:4mm;gap:2mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+    +'</style></head><body>'
+    +'<div class="toolbar">'
+    +'<strong style="font-family:Audiowide,sans-serif">POST FICTION</strong>'
+    +'<span style="color:#555;font-size:11px">'+items.length+' card'+(items.length!==1?'s':'')+' \u00b7 63mm \u00d7 88mm \u00b7 Actual Size \u00b7 Background Graphics on</span>'
+    +'<button class="tbtn-print" onclick="window.print()">Print</button>'
+    +'<button class="tbtn-close" onclick="window.close()">Close</button>'
+    +'</div>'
+    +'<div class="print-grid">'+cardsHTML+'</div>'
+    +'<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},600);});<\/script>'
+    +'</body></html>');
+  win.document.close();
+}
+
+// ── Routing ───────────────────────────────────────────────────────────────────
+function go(tab){S.tab=tab;if(tab==='testhand'){renderTH();}else if(tab==='decks'){renderDecksPage();}else{render();}window.scrollTo(0,0);}
+function toggleLog(id){S.exp=S.exp===id?null:id;render();}
+function render(){
+  const pages={gallery:renderGallery,log:renderLog,print:renderPrint,rules:renderRules};
+  document.getElementById('sb').innerHTML=renderSB();
+  if(S.tab==='decks'){renderDecksPage();}else{document.getElementById('mn').innerHTML=(pages[S.tab]||renderGallery)();}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DECK SYSTEM — save/load/share/export/import, no account needed
+// ═══════════════════════════════════════════════════════════════
+
+const LS_KEY = 'pf_decks_v1';
+
+// ── Compact encode/decode — no base64, human-readable ─────────────
+// Format: gc001.pr001.sc002x2.ll001x3
+// id with hyphens stripped, xN suffix for copies > 1, dot separated
+// Named deck URLs: ?deck=My+Deck+Name~gc001.pr001x2
+function encodeDeck(q){
+  return Object.entries(q)
+    .filter(([,n])=>n>0)
+    .map(([id,n])=>{ const sid=id.replace(/-/g,''); return n>1?`${sid}x${n}`:sid; })
+    .join('.');
+}
+
+function decodeDeck(str){
+  const q={};
+  str.split('.').forEach(part=>{
+    const m = part.match(/^([a-z0-9]+)(?:x([123]))?$/i);
+    if(!m) return;
+    // Restore hyphens: gcXXX -> gc-XXX, prXXX -> pr-XXX etc
+    const raw = m[1];
+    const id = raw.replace(/^([a-z]+)(\d+)$/, '$1-$2').replace(/(\d{2})$/, v => v.length===2 && raw.match(/\d{3}$/) ? raw.slice(-3) : v);
+    // Better: just try to find the card by stripped ID
+    const count = m[2] ? parseInt(m[2]) : 1;
+    q[raw] = count; // store stripped, resolve later
+  });
+  return q;
+}
+
+// Resolve stripped IDs against actual card list
+function resolveQueue(rawQ){
+  const resolved = {};
+  Object.entries(rawQ).forEach(([rawId, count])=>{
+    // Find card whose id with hyphens stripped matches
+    const card = CARDS.find(c => c.id.replace(/-/g,'') === rawId);
+    if(card) resolved[card.id] = Math.min(3, count);
+  });
+  return resolved;
+}
+
+// ── localStorage helpers ─────────────────────────────────────────
+function loadSavedDecks(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function saveSavedDecks(decks){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(decks)); }
+  catch(e){ alert('Could not save — browser storage may be full or disabled.'); }
+}
+
+// ── Check URL for shared deck on load ────────────────────────────
+function checkURLDeck(){
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('deck');
+  if(!raw) return;
+  // Check for named deck format: Name~cards
+  const tilde = raw.indexOf('~');
+  const deckName = tilde > -1 ? decodeURIComponent(raw.slice(0, tilde)) : null;
+  const cardStr  = tilde > -1 ? raw.slice(tilde+1) : raw;
+  const rawQ = decodeDeck(cardStr);
+  const resolved = resolveQueue(rawQ);
+  if(Object.keys(resolved).length > 0){
+    S.q = resolved;
+    S._deckFromURL = true;
+    S._deckFromURLName = deckName;
+  }
+}
+
+// ── Build share URL ───────────────────────────────────────────────
+function buildShareURL(q, name){
+  const encoded = encodeDeck(q);
+  if(!encoded) return '';
+  const base = window.location.href.split('?')[0];
+  if(name){
+    return `${base}?deck=${encodeURIComponent(name)}~${encoded}`;
+  }
+  return `${base}?deck=${encoded}`;
+}
+
+// ── Quick share from gallery — no save required ──────────────────
+function quickShare(){
+  const url = buildShareURL(S.q);
+  if(!url){ showModal('Nothing to share','Add some cards to your queue first.'); return; }
+  showShareModal(url, null);
+}
+
+// ── Save current queue as a named deck ───────────────────────────
+function saveDeckPrompt(){
+  const total = Object.values(S.q).reduce((a,b)=>a+b,0);
+  if(total === 0){ showModal('Nothing to save','Add some cards to your queue first.'); return; }
+  showNameModal();
+}
+
+function confirmSaveDeck(name){
+  const trimmed = name.trim();
+  if(!trimmed) return;
+  const decks = loadSavedDecks();
+  const deck = { id:Date.now().toString(36), name:trimmed, saved:new Date().toLocaleDateString(), cards:{...S.q} };
+  decks.unshift(deck);
+  saveSavedDecks(decks);
+  closeModal();
+  go('decks');
+}
+
+function loadDeck(id){
+  const deck = loadSavedDecks().find(d=>d.id===id);
+  if(!deck) return;
+  S.q = {...deck.cards};
+  render();
+  go('gallery');
+}
+
+function deleteDeck(id){
+  saveSavedDecks(loadSavedDecks().filter(d=>d.id!==id));
+  renderDecksPage();
+}
+
+function exportDeck(id){
+  const deck = loadSavedDecks().find(d=>d.id===id);
+  if(!deck) return;
+  const blob = new Blob([JSON.stringify(deck,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pf-deck-${deck.name.replace(/[^a-z0-9]/gi,'-').toLowerCase()}.json`;
+  a.click();
+}
+
+function importDeckFile(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const deck = JSON.parse(e.target.result);
+      if(!deck.name || !deck.cards) throw new Error('bad file');
+      deck.id = Date.now().toString(36);
+      deck.saved = new Date().toLocaleDateString()+' (imported)';
+      const decks = loadSavedDecks();
+      decks.unshift(deck);
+      saveSavedDecks(decks);
+      renderDecksPage();
+    }catch(err){ showModal('Import failed','That file does not look like a valid Post Fiction deck file.'); }
+  };
+  reader.readAsText(file);
+}
+
+function shareDeck(id){
+  const deck = loadSavedDecks().find(d=>d.id===id);
+  if(!deck) return;
+  const url = buildShareURL(deck.cards, deck.name);
+  showShareModal(url, deck.name);
+}
+
+// ── Share modal ───────────────────────────────────────────────────
+function showShareModal(url, deckName){
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov'; ov.id = 'modal-ov';
+  const title = deckName ? `Share "${deckName}"` : 'Share deck';
+  const total = Object.values(S.q).reduce((a,b)=>a+b,0);
+  const subtitle = deckName ? '' : `${total} card${total!==1?'s':''} · anyone with this link gets the same deck loaded`;
+  ov.innerHTML = `<div class="modal-box">
+    <h3>${title}</h3>
+    ${subtitle?`<p>${subtitle}</p>`:''}
+    <div style="background:#111;border:1px solid #2a4a2a;border-radius:4px;padding:8px 10px;margin-bottom:12px;word-break:break-all;font-family:'Roboto',monospace;font-size:10px;color:#7ec87e;cursor:pointer" 
+      onclick="copyText('${url.replace(/'/g,"\\'")}',this)" title="Click to copy">
+      ${url}
+    </div>
+    <div class="modal-row" style="justify-content:space-between">
+      <span id="share-copied" style="font-size:11px;color:#7ec87e;font-family:'Roboto',sans-serif;visibility:hidden">Copied!</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-dk hi" onclick="copyText('${url.replace(/'/g,"\\'")}',null)">Copy link</button>
+        <button class="btn-dk" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+
+function copyText(url, el){
+  navigator.clipboard.writeText(url).then(()=>{
+    const badge = document.getElementById('share-copied');
+    if(badge){ badge.style.visibility='visible'; setTimeout(()=>badge.style.visibility='hidden',2000); }
+  }).catch(()=>{
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    const badge = document.getElementById('share-copied');
+    if(badge){ badge.style.visibility='visible'; setTimeout(()=>badge.style.visibility='hidden',2000); }
+  });
+}
+
+// ── Standard modals ───────────────────────────────────────────────
+function showModal(title, msg){
+  const ov = document.createElement('div');
+  ov.className='modal-ov'; ov.id='modal-ov';
+  ov.innerHTML=`<div class="modal-box"><h3>${title}</h3><p>${msg}</p><div class="modal-row" style="justify-content:flex-end"><button class="btn-dk" onclick="closeModal()">OK</button></div></div>`;
+  document.body.appendChild(ov);
+}
+
+function showNameModal(){
+  const ov = document.createElement('div');
+  ov.className='modal-ov'; ov.id='modal-ov';
+  const total = Object.values(S.q).reduce((a,b)=>a+b,0);
+  ov.innerHTML=`<div class="modal-box">
+    <h3>Save deck</h3>
+    <p>${total} card${total!==1?'s':''} in queue. Give this deck a name.</p>
+    <input class="modal-input" id="deck-name-input" type="text" placeholder="Deck name…" maxlength="40"
+      onkeydown="if(event.key==='Enter')confirmSaveDeck(this.value)">
+    <div class="modal-row" style="justify-content:flex-end;gap:8px">
+      <button class="btn-dk" onclick="closeModal()">Cancel</button>
+      <button class="btn-dk hi" onclick="confirmSaveDeck(document.getElementById('deck-name-input').value)">Save</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>document.getElementById('deck-name-input')?.focus(),50);
+}
+
+function closeModal(){ document.getElementById('modal-ov')?.remove(); }
+
+// ── Decks page ────────────────────────────────────────────────────
+function renderDecksPage(){
+  S.tab='decks';
+  document.getElementById('sb').innerHTML=renderSB();
+  const decks=loadSavedDecks();
+  const qn=Object.values(S.q).reduce((a,b)=>a+b,0);
+  let html=`<div class="stitle">My Decks</div>
+  <div class="deck-toolbar">
+    <span class="deck-toolbar-label">Current queue: <strong>${qn} card${qn!==1?'s':''}</strong></span>
+    <button class="btn-dk hi" onclick="saveDeckPrompt()">Save as deck</button>
+    <label class="btn-dk" style="cursor:pointer">Import from file <input type="file" accept=".json" style="display:none" onchange="importDeckFile(this)"></label>
+  </div>`;
+  if(!decks.length){
+    html+=`<p class="empty">No saved decks yet. Build a queue in the gallery and save it here.</p>`;
+  } else {
+    html+=`<div class="deck-list">`;
+    decks.forEach(deck=>{
+      const total=Object.values(deck.cards).reduce((a,b)=>a+b,0);
+      html+=`<div class="deck-item">
+        <div class="deck-item-hd">
+          <div class="deck-item-name">${deck.name}</div>
+          <div class="deck-item-meta">${total} cards · saved ${deck.saved}</div>
+        </div>
+        <div class="deck-item-acts">
+          <button class="btn-dk hi" onclick="loadDeck('${deck.id}')">Load into queue</button>
+          <button class="btn-dk" onclick="shareDeck('${deck.id}')">⬆ Share</button>
+          <button class="btn-dk" onclick="exportDeck('${deck.id}')">Export file</button>
+          <button class="btn-dk red" onclick="deleteDeck('${deck.id}')">Delete</button>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  document.getElementById('mn').innerHTML=html;
+}
+
+// ── URL deck banner ───────────────────────────────────────────────
+function urlDeckBanner(){
+  if(!S._deckFromURL) return '';
+  const total=Object.values(S.q).reduce((a,b)=>a+b,0);
+  const nameStr = S._deckFromURLName ? `<strong>${S._deckFromURLName}</strong> — ` : '';
+  return `<div style="background:#1a2a1a;border:1px solid #2a4a2a;border-radius:6px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span style="font-size:12px;color:#7ec87e;font-family:'Roboto',sans-serif">
+      ${nameStr}${total} card${total!==1?'s':''} loaded from shared link
+    </span>
+    <button class="btn-dk hi" onclick="saveDeckPrompt()" style="margin-left:auto">Save this deck</button>
+    <button class="btn-dk" onclick="S._deckFromURL=false;render()">Dismiss</button>
+  </div>`;
+}
+
+
+// ── Zoom / card size ─────────────────────────────────────────────
+function setZoom(w){
+  ZOOM_W=w;
+  localStorage.setItem('pf_zoom',w);
+  render();
+}
+function zoomBar(){
+  const labels={110:'XS',140:'S',168:'M',210:'L',280:'XL'};
+  return '<div class="zoom-btns">'
+    +ZOOM_SIZES.map(w=>`<button class="zbtn${ZOOM_W===w?' on':''}" onclick="setZoom(${w})">${labels[w]}</button>`).join('')
+    +'</div>';
+}
+
+// ── Mobile sidebar toggle ─────────────────────────────────────────
+function toggleSidebar(){
+  const aside = document.querySelector('aside');
+  const overlay = document.getElementById('sb-overlay');
+  const isOpen = aside.classList.toggle('open');
+  overlay.classList.toggle('on', isOpen);
+  document.getElementById('ham-btn').textContent = isOpen ? '✕' : '☰';
+}
+
+// Close sidebar when a nav item is clicked on mobile
+function go(tab){
+  S.tab=tab;
+  if(window.innerWidth<=680){
+    const aside=document.querySelector('aside');
+    const overlay=document.getElementById('sb-overlay');
+    aside.classList.remove('open');
+    overlay.classList.remove('on');
+    document.getElementById('ham-btn').textContent='☰';
+  }
+  if(tab==='testhand'){renderTH();}else if(tab==='decks'){renderDecksPage();}else{render();}
+  window.scrollTo(0,0);
+}
+
+loadCards();
+</script>
+</body>
+</html>

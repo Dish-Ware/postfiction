@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post Fiction — Card Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Audiowide&family=Oswald:wght@400;700&family=Rajdhani:wght@400;700&family=Exo+2:wght@400;700&family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Roboto',sans-serif;background:#1a1714;color:#ddd;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{background:#111;border-bottom:2px solid #c8391a;padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+header h1{font-family:'Audiowide',sans-serif;font-size:16px;color:#f0e6c8}
+header span{font-size:11px;color:#444}
+.hbtns{margin-left:auto;display:flex;gap:8px;align-items:center}
+.hbtn{padding:6px 14px;border-radius:4px;font-family:'Roboto',sans-serif;font-size:12px;cursor:pointer}
+.hbtn-save{background:#c8391a;color:#fff;border:none}
+.hbtn-save:hover{background:#a82d14}
+.hbtn-load{background:none;border:1px solid #3a3530;color:#888}
+.hbtn-load:hover{border-color:#666;color:#ccc}
+.hbtn-export{background:#1a3a1a;color:#7ec87e;border:1px solid #2a4a2a}
+.hbtn-export:hover{background:#1e441e}
+.frame-sel{background:#111;border:1px solid #3a3530;color:#e0d8c8;border-radius:4px;padding:5px 8px;font-family:'Roboto',sans-serif;font-size:12px;outline:none;cursor:pointer}
+.frame-sel:focus{border-color:#c8391a}
+.shell{display:flex;flex:1;overflow:hidden}
+.ctrl{width:300px;min-width:300px;background:#141210;border-right:1px solid #2a2520;overflow-y:auto;display:flex;flex-direction:column}
+.tabs{display:flex;border-bottom:1px solid #2a2520;flex-shrink:0}
+.tab{flex:1;padding:8px 4px;text-align:center;font-size:11px;color:#555;cursor:pointer;border:none;background:none;font-family:'Roboto',sans-serif;border-bottom:2px solid transparent}
+.tab:hover{color:#888;background:#1a1814}
+.tab.on{color:#f0e6c8;background:#1e1c18;border-bottom-color:#c8391a}
+.tab-panel{display:none;flex-direction:column;overflow-y:auto;flex:1}
+.tab-panel.on{display:flex}
+.sec{border-bottom:1px solid #1e1c18;flex-shrink:0}
+.sec-hd{padding:8px 12px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#555;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#111;user-select:none}
+.sec-hd:hover{color:#888}
+.arr{font-size:9px;transition:transform .15s;display:inline-block}
+.sec-hd.open .arr{transform:rotate(90deg)}
+.sec-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px;background:#1a1814}
+.sec-body.closed{display:none}
+.field{display:flex;flex-direction:column;gap:2px}
+.field label{font-size:9px;color:#665a50;letter-spacing:.04em;text-transform:uppercase}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px}
+
+/* Number widget */
+.nw{display:flex;align-items:center;background:#111;border:1px solid #2a2520;border-radius:4px;overflow:hidden;height:28px}
+.nw:focus-within{border-color:#c8391a}
+.ni{flex:1;min-width:0;background:transparent;border:none;color:#e0d8c8;font-family:'Roboto',monospace;font-size:11px;padding:0 5px;text-align:right;outline:none;-moz-appearance:textfield;height:100%}
+.ni::-webkit-inner-spin-button,.ni::-webkit-outer-spin-button{-webkit-appearance:none}
+.na{display:flex;flex-direction:column;border-left:1px solid #2a2520;height:100%}
+.nb{background:none;border:none;color:#555;cursor:pointer;padding:0 5px;font-size:8px;line-height:1;flex:1;display:flex;align-items:center;justify-content:center}
+.nb:hover{background:#2a2520;color:#ccc}
+
+/* Color widget */
+.cw{display:flex;align-items:center;gap:5px;background:#111;border:1px solid #2a2520;border-radius:4px;padding:3px 6px;height:28px}
+.cw:focus-within{border-color:#c8391a}
+.cs{width:18px;height:18px;border-radius:2px;border:1px solid #333;cursor:pointer;flex-shrink:0;padding:0}
+.ch{flex:1;background:transparent;border:none;color:#e0d8c8;font-family:'Roboto',monospace;font-size:10px;outline:none;min-width:0;width:60px}
+
+/* Select */
+.sel{width:100%;background:#111;border:1px solid #2a2520;border-radius:4px;color:#e0d8c8;font-family:'Roboto',sans-serif;font-size:11px;padding:5px 6px;outline:none;cursor:pointer;height:28px}
+.sel:focus{border-color:#c8391a}
+
+/* Text input */
+.ti{width:100%;background:#111;border:1px solid #2a2520;border-radius:4px;color:#e0d8c8;font-family:'Roboto',sans-serif;font-size:11px;padding:5px 6px;outline:none;height:28px}
+.ti:focus{border-color:#c8391a}
+.ta{width:100%;background:#111;border:1px solid #2a2520;border-radius:4px;color:#e0d8c8;font-family:'Roboto',sans-serif;font-size:11px;padding:5px 6px;outline:none;resize:vertical;min-height:50px;line-height:1.4}
+.ta:focus{border-color:#c8391a}
+
+.zone-divider{font-size:9px;color:#c8391a;letter-spacing:.1em;text-transform:uppercase;padding:8px 12px 2px;background:#111;border-top:1px solid #2a2520;font-family:'Roboto',sans-serif;flex-shrink:0}
+
+/* Preview */
+.preview-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px;gap:14px;overflow-y:auto}
+.preview-label{font-size:10px;color:#3a3530;font-family:'Roboto',sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.pf-card{position:relative;overflow:hidden;flex-shrink:0}
+.c-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;z-index:1}
+.hint{font-size:11px;color:#3a3530;font-family:'Roboto',sans-serif;text-align:center;max-width:300px;line-height:1.7}
+.drag-toggle{background:#1a2a1a;color:#7ec87e;border:1px solid #2a4a2a;border-radius:4px;padding:6px 14px;font-family:'Roboto',sans-serif;font-size:12px;cursor:pointer}
+.drag-toggle:hover{background:#1e3a1e}
+.drag-toggle.on{background:#2a5a2a;color:#aee8ae;border-color:#4a8a4a}
+.drag-handle{position:absolute;cursor:move;border:2px solid;border-radius:3px;display:flex;align-items:flex-start;justify-content:flex-start;user-select:none;box-sizing:border-box;transition:opacity .15s}
+.drag-handle:hover{opacity:1!important}
+.drag-handle.selected{box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.5)}
+.drag-label{font-size:9px;font-family:'Roboto',sans-serif;font-weight:700;padding:1px 4px;border-radius:2px;line-height:1.2;white-space:nowrap;pointer-events:none}
+.rh{position:absolute;background:#fff;border:1px solid #333;border-radius:1px;z-index:20;box-sizing:border-box}
+.rh-n{top:-3px;left:20%;width:60%;height:6px;cursor:n-resize}
+.rh-s{bottom:-3px;left:20%;width:60%;height:6px;cursor:s-resize}
+.rh-e{right:-3px;top:20%;width:6px;height:60%;cursor:e-resize}
+.rh-w{left:-3px;top:20%;width:6px;height:60%;cursor:w-resize}
+.rh-nw{top:-3px;left:-3px;width:8px;height:8px;cursor:nw-resize}
+.rh-ne{top:-3px;right:-3px;width:8px;height:8px;cursor:ne-resize}
+.rh-sw{bottom:-3px;left:-3px;width:8px;height:8px;cursor:sw-resize}
+.rh-se{bottom:-3px;right:-3px;width:8px;height:8px;cursor:se-resize}
+.fmt-bar{position:absolute;z-index:50;background:#111;border:1px solid #444;border-radius:6px;padding:5px 7px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;min-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.6);font-family:'Roboto',sans-serif}
+.fmt-bar select{background:#1e1c18;border:1px solid #333;border-radius:3px;color:#ddd;font-size:10px;padding:2px 4px;cursor:pointer;outline:none;height:22px}
+.fmt-bar select:focus{border-color:#c8391a}
+.fmt-btn{background:#1e1c18;border:1px solid #333;border-radius:3px;color:#888;font-size:10px;padding:0 6px;cursor:pointer;height:22px;min-width:22px;display:flex;align-items:center;justify-content:center}
+.fmt-btn:hover{background:#2a2a2a;color:#fff}
+.fmt-btn.on{background:#c8391a;border-color:#c8391a;color:#fff}
+.fmt-num{background:#1e1c18;border:1px solid #333;border-radius:3px;color:#ddd;font-size:10px;width:38px;text-align:right;height:22px;padding:0 4px;outline:none}
+.fmt-num:focus{border-color:#c8391a}
+.fmt-divider{width:1px;height:18px;background:#333;flex-shrink:0}
+.fmt-label{font-size:9px;color:#555;white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <h1>POST FICTION</h1>
+  <span>Card Designer</span>
+  <div class="hbtns">
+    <span style="font-size:11px;color:#555">Editing layout for:</span>
+    <select class="frame-sel" id="frame-picker" onchange="switchFrame(this.value)">
+      <option value="Creatures">Creatures</option>
+      <option value="Magic">Magic</option>
+      <option value="Reactions">Reactions</option>
+    </select>
+    <button class="hbtn hbtn-load" onclick="document.getElementById('lf').click()">Load JSON</button>
+    <input type="file" id="lf" accept=".json" style="display:none" onchange="loadFromFile(this)">
+    <button class="hbtn hbtn-export" onclick="exportLayout()">Export layout.json</button>
+  </div>
+</header>
+<div class="shell">
+  <div class="ctrl">
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('zones')" id="tab-zones">Zones</button>
+      <button class="tab" onclick="switchTab('fonts')" id="tab-fonts">Fonts &amp; Color</button>
+      <button class="tab" onclick="switchTab('card')" id="tab-card">Card Data</button>
+    </div>
+
+    <!-- ZONES TAB -->
+    <div class="tab-panel on" id="panel-zones">
+
+      <div class="zone-divider">Art Zone</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="g2">
+          <div class="field"><label>Left %</label><div id="c-art-left"></div></div>
+          <div class="field"><label>Top %</label><div id="c-art-top"></div></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Width %</label><div id="c-art-width"></div></div>
+          <div class="field"><label>Height %</label><div id="c-art-height"></div></div>
+          <div class="field"><label>Opacity</label><div id="c-art-opacity"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Card Name</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="g3">
+          <div class="field"><label>Left %</label><div id="c-name-left"></div></div>
+          <div class="field"><label>Top %</label><div id="c-name-top"></div></div>
+          <div class="field"><label>Font size</label><div id="c-name-fontSize"></div></div>
+          <div class="field"><label>Opacity</label><div id="c-name-opacity"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Cost Badge</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="g3">
+          <div class="field"><label>Right %</label><div id="c-cost-right"></div></div>
+          <div class="field"><label>Top %</label><div id="c-cost-top"></div></div>
+          <div class="field"><label>Font size</label><div id="c-cost-fontSize"></div></div>
+          <div class="field"><label>Opacity</label><div id="c-cost-opacity"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Typeline (center text)</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="g3">
+          <div class="field"><label>Left %</label><div id="c-typeline-left"></div></div>
+          <div class="field"><label>Top %</label><div id="c-typeline-top"></div></div>
+          <div class="field"><label>Right %</label><div id="c-typeline-right"></div></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Font size</label><div id="c-typeline-fontSize"></div></div>
+          <div class="field"><label>Opacity</label><div id="c-typeline-opacity"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">ATK (left stat)</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="g3">
+          <div class="field"><label>Left %</label><div id="c-atk-left"></div></div>
+          <div class="field"><label>Top %</label><div id="c-atk-top"></div></div>
+          <div class="field"><label>Font size</label><div id="c-atk-fontSize"></div></div>
+          <div class="field"><label>Opacity</label><div id="c-atk-opacity"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">DEF (right stat)</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="g3">
+          <div class="field"><label>Right %</label><div id="c-def-right"></div></div>
+          <div class="field"><label>Top %</label><div id="c-def-top"></div></div>
+          <div class="field"><label>Font size</label><div id="c-def-fontSize"></div></div>
+          <div class="field"><label>Opacity</label><div id="c-def-opacity"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Effect Text</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="field"><label>Show text box outline</label>
+          <select class="sel" id="show-effect-box" onchange="rp()">
+            <option value="1" selected>Yes — show boundary</option>
+            <option value="0">No — hide boundary</option>
+          </select>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Left %</label><div id="c-effect-left"></div></div>
+          <div class="field"><label>Right %</label><div id="c-effect-right"></div></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Top %</label><div id="c-effect-top"></div></div>
+          <div class="field"><label>Bottom %</label><div id="c-effect-bottom"></div></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Font size</label><div id="c-effect-fontSize"></div></div>
+          <div class="field"><label>Line height</label><div id="c-effect-lineHeight"></div></div>
+          <div class="field"><label>Opacity</label><div id="c-effect-opacity"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Flavor Text</div>
+      <div class="sec"><div class="sec-hd" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body closed">
+        <div class="field"><label>Show text box outline</label>
+          <select class="sel" id="show-flavor-box" onchange="rp()">
+            <option value="1" selected>Yes — show boundary</option>
+            <option value="0">No — hide boundary</option>
+          </select>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Left %</label><div id="c-flavor-left"></div></div>
+          <div class="field"><label>Right %</label><div id="c-flavor-right"></div></div>
+        </div>
+        <div class="g3">
+          <div class="field"><label>Top %</label><div id="c-flavor-top"></div></div>
+          <div class="field"><label>Bottom %</label><div id="c-flavor-bottom"></div></div>
+          <div class="field"><label>Font size</label><div id="c-flavor-fontSize"></div></div>
+        </div>
+        <div class="field"><label>Opacity</label><div id="c-flavor-opacity"></div></div>
+      </div></div>
+
+      <div class="zone-divider">Set Label</div>
+      <div class="sec"><div class="sec-hd" onclick="togSec(this)">Position &amp; Size <span class="arr">▶</span></div>
+      <div class="sec-body closed">
+        <div class="g3">
+          <div class="field"><label>Left %</label><div id="c-setlabel-left"></div></div>
+          <div class="field"><label>Bottom %</label><div id="c-setlabel-bottom"></div></div>
+          <div class="field"><label>Font size</label><div id="c-setlabel-fontSize"></div></div>
+          <div class="field"><label>Opacity</label><div id="c-setlabel-opacity"></div></div>
+        </div>
+      </div></div>
+    </div><!-- end zones -->
+
+    <!-- FONTS & COLOR TAB -->
+    <div class="tab-panel" id="panel-fonts">
+
+      <div class="zone-divider">Card Name</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Font &amp; Color <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="field"><label>Font</label><div id="f-name-fontFamily"></div></div>
+        <div class="g2">
+          <div class="field"><label>Color</label><div id="f-name-color"></div></div>
+          <div class="field"><label>Weight</label><div id="f-name-fontWeight"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Cost Badge</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Font &amp; Color <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="field"><label>Font</label><div id="f-cost-fontFamily"></div></div>
+        <div class="g2">
+          <div class="field"><label>Color</label><div id="f-cost-color"></div></div>
+          <div class="field"><label>Weight</label><div id="f-cost-fontWeight"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Typeline (center text)</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Font &amp; Color <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="field"><label>Font</label><div id="f-typeline-fontFamily"></div></div>
+        <div class="g2">
+          <div class="field"><label>Color</label><div id="f-typeline-color"></div></div>
+          <div class="field"><label>Weight</label><div id="f-typeline-fontWeight"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">ATK stat</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Font &amp; Color <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="field"><label>Font</label><div id="f-atk-fontFamily"></div></div>
+        <div class="g2">
+          <div class="field"><label>Color</label><div id="f-atk-color"></div></div>
+          <div class="field"><label>Weight</label><div id="f-atk-fontWeight"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">DEF stat</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Font &amp; Color <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="field"><label>Font</label><div id="f-def-fontFamily"></div></div>
+        <div class="g2">
+          <div class="field"><label>Color</label><div id="f-def-color"></div></div>
+          <div class="field"><label>Weight</label><div id="f-def-fontWeight"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Effect Text</div>
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Font &amp; Color <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="field"><label>Font</label><div id="f-effect-fontFamily"></div></div>
+        <div class="g2">
+          <div class="field"><label>Color</label><div id="f-effect-color"></div></div>
+          <div class="field"><label>Weight</label><div id="f-effect-fontWeight"></div></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Font style</label><div id="f-effect-fontStyle"></div></div>
+          <div class="field"><label>Alignment</label><div id="f-effect-textAlign"></div></div>
+        </div>
+      </div></div>
+
+      <div class="zone-divider">Flavor &amp; Set Label</div>
+      <div class="sec"><div class="sec-hd" onclick="togSec(this)">Font &amp; Color <span class="arr">▶</span></div>
+      <div class="sec-body closed">
+        <div class="field"><label>Flavor font style</label><div id="f-flavor-fontStyle"></div></div>
+        <div class="field"><label>Flavor alignment</label><div id="f-flavor-textAlign"></div></div>
+        <div class="field"><label>Flavor color</label><div id="f-flavor-color"></div></div>
+        <div class="field"><label>Set label color</label><div id="f-setlabel-color"></div></div>
+      </div></div>
+    </div><!-- end fonts -->
+
+    <!-- CARD DATA TAB -->
+    <div class="tab-panel" id="panel-card">
+      <div class="sec"><div class="sec-hd open" onclick="togSec(this)">Sample Card <span class="arr">▶</span></div>
+      <div class="sec-body">
+        <div class="field"><label>Name</label><input class="ti" id="cd-name" value="Shielded Scientist" oninput="rp()"></div>
+        <div class="g2">
+          <div class="field"><label>Type</label>
+            <select class="sel" id="cd-type" onchange="rp()">
+              <option value="Creature" selected>Creature</option>
+              <option value="Magic">Magic</option>
+              <option value="Reaction">Reaction</option>
+            </select>
+          </div>
+          <div class="field"><label>Type 2</label><input class="ti" id="cd-type2" value="Humanoid" oninput="rp()"></div>
+        </div>
+        <div class="g3">
+          <div class="field"><label>Cost</label><input class="ti" id="cd-cost" type="number" value="2" min="0" max="9" oninput="rp()"></div>
+          <div class="field"><label>ATK</label><input class="ti" id="cd-atk" type="number" value="1" oninput="rp()"></div>
+          <div class="field"><label>DEF</label><input class="ti" id="cd-def" type="number" value="2" oninput="rp()"></div>
+        </div>
+        <div class="field"><label>Effect</label><textarea class="ta" id="cd-effect" oninput="rp()">This creature may block twice per combat, but takes damage equal to the total ATK it absorbed.</textarea></div>
+        <div class="field"><label>Flavor</label><input class="ti" id="cd-flavor" value="" oninput="rp()"></div>
+        <div class="field"><label>Art image</label><input type="file" accept="image/*" class="ti" style="font-size:10px;padding:3px 5px;height:auto" onchange="loadArt(this)"></div>
+        <div class="field"><label>Preview scale</label>
+          <select class="sel" id="cd-scale" onchange="rp()">
+            <option value="0.5">0.5× — print size reference</option>
+            <option value="0.75">0.75×</option>
+            <option value="1" selected>1× — full native size</option>
+          </select>
+        </div>
+      </div></div>
+    </div><!-- end card data -->
+
+  </div><!-- end ctrl -->
+
+  <div class="preview-area">
+    <div style="display:flex;gap:10px;align-items:center;width:100%;justify-content:center;flex-wrap:wrap">
+      <div class="preview-label" id="preview-frame-label" style="margin:0">Creatures.png</div>
+      <button class="drag-toggle" id="drag-btn" onclick="toggleDrag()">🖐 Enable drag</button>
+      <span id="drag-status" style="font-size:10px;color:#3a3530;font-family:'Roboto',sans-serif"></span>
+    </div>
+    <div id="preview" style="position:relative"></div>
+    <div class="hint">
+      Select a frame in the header to edit its layout independently.<br>
+      Export as <strong style="color:#c8b090">layout.json</strong> then place in your site's <strong style="color:#c8b090">layouts/</strong> folder.<br>
+      Name it to match the frame: <strong style="color:#c8b090">Creatures.json</strong>, <strong style="color:#c8b090">Magic.json</strong>, etc.
+    </div>
+  </div>
+</div>
+
+<script>
+const FONTS = ['Roboto','Audiowide','Oswald','Rajdhani','Exo 2','Orbitron','Share Tech Mono','Bebas Neue'];
+const FRAME_FILES = { Creatures:'frames/Creatures.png', Magic:'frames/Magic.png', Reactions:'frames/Reactions.png' };
+
+// Per-frame layouts
+const LAYOUTS = {};
+let currentFrame = 'Creatures';
+
+function defaultLayout(){
+  return {
+    name:     { left:4,  top:2,    fontSize:11,  color:'#111111', fontFamily:'Roboto',    fontWeight:'700', opacity:1 },
+    cost:     { right:3, top:1.5,  fontSize:13,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+    art:      { left:5,  top:10.7, width:89.8,   height:40.9, opacity:1 },
+    atk:      { left:4,  top:53,   fontSize:11,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+    typeline: { left:0,  right:0,  top:52.5, fontSize:11, color:'#111111', fontFamily:'Roboto', fontWeight:'700', opacity:1 },
+    def:      { right:4, top:53,   fontSize:11,  color:'#111111', fontFamily:'Audiowide', fontWeight:'400', opacity:1 },
+    effect:   { left:4,  right:4,  top:60, bottom:8, fontSize:9, color:'#111111', lineHeight:1.45, fontFamily:'Roboto', fontWeight:'700', opacity:1, textAlign:'left', fontStyle:'normal', verticalAlign:'top' },
+    flavor:   { left:4,  right:4,  top:75, bottom:8, fontSize:7.5, color:'#444444', fontFamily:'Roboto', fontWeight:'400', opacity:1, textAlign:'left', fontStyle:'italic', verticalAlign:'bottom' },
+    setlabel: { left:4,  bottom:1, fontSize:6,   color:'#666666', fontFamily:'Roboto', fontWeight:'400', opacity:1 }
+  };
+}
+
+function L(){ return LAYOUTS[currentFrame] || (LAYOUTS[currentFrame]=defaultLayout()); }
+
+// ── Number widget ─────────────────────────────────────────────────
+function nw(zone, prop, step, min, max){
+  const id=`nw-${zone}-${prop}`;
+  const val=L()[zone]?.[prop]??0;
+  return `<div class="nw">
+    <input class="ni" id="${id}" type="number" value="${val}" step="${step}" min="${min}" max="${max}"
+      oninput="sv('${zone}','${prop}',+this.value)">
+    <div class="na">
+      <button class="nb" onmousedown="startNudge('${zone}','${prop}',${step},${max})" onmouseup="stopNudge()" onmouseleave="stopNudge()">▲</button>
+      <button class="nb" onmousedown="startNudge('${zone}','${prop}',-${step},${min})" onmouseup="stopNudge()" onmouseleave="stopNudge()">▼</button>
+    </div>
+  </div>`;
+}
+
+// ── Color widget ──────────────────────────────────────────────────
+function cw(zone, prop){
+  const cid=`cw-${zone}-${prop}`, tid=`ct-${zone}-${prop}`;
+  const val=L()[zone]?.[prop]??'#111111';
+  return `<div class="cw">
+    <input type="color" class="cs" value="${val}" id="${cid}"
+      oninput="sv('${zone}','${prop}',this.value);document.getElementById('${tid}').value=this.value">
+    <input type="text" class="ch" value="${val}" id="${tid}" maxlength="7"
+      oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){sv('${zone}','${prop}',this.value);document.getElementById('${cid}').value=this.value}">
+  </div>`;
+}
+
+// ── Font select ───────────────────────────────────────────────────
+function fw(zone){
+  const cur=L()[zone]?.fontFamily??'Roboto';
+  return `<select class="sel" onchange="sv('${zone}','fontFamily',this.value)">
+    ${FONTS.map(f=>`<option${f===cur?' selected':''}>${f}</option>`).join('')}
+  </select>`;
+}
+function ww(zone){
+  const cur=L()[zone]?.fontWeight??'400';
+  return `<select class="sel" onchange="sv('${zone}','fontWeight',this.value)">
+    <option value="400"${cur==='400'?' selected':''}>Regular</option>
+    <option value="700"${cur==='700'?' selected':''}>Bold</option>
+  </select>`;
+}
+
+function fsw(zone){
+  const cur=L()[zone]?.fontStyle??'normal';
+  return `<select class="sel" onchange="sv('${zone}','fontStyle',this.value)">
+    <option value="normal"${cur==='normal'?' selected':''}>Normal</option>
+    <option value="italic"${cur==='italic'?' selected':''}>Italic</option>
+  </select>`;
+}
+
+function taw(zone){
+  const cur=L()[zone]?.textAlign??'left';
+  return `<select class="sel" onchange="sv('${zone}','textAlign',this.value)">
+    <option value="left"${cur==='left'?' selected':''}>Left</option>
+    <option value="center"${cur==='center'?' selected':''}>Center</option>
+    <option value="right"${cur==='right'?' selected':''}>Right</option>
+    <option value="justify"${cur==='justify'?' selected':''}>Justify</option>
+  </select>`;
+}
+
+// ── Set value ─────────────────────────────────────────────────────
+function sv(zone,prop,val){
+  if(!LAYOUTS[currentFrame]) LAYOUTS[currentFrame]=defaultLayout();
+  if(!LAYOUTS[currentFrame][zone]) LAYOUTS[currentFrame][zone]={};
+  LAYOUTS[currentFrame][zone][prop]=val;
+  rp();
+}
+
+let nudgeTimer=null;
+function startNudge(zone,prop,step,limit){
+  doNudge(zone,prop,step,limit);
+  nudgeTimer=setInterval(()=>doNudge(zone,prop,step,limit),120);
+}
+function stopNudge(){ clearInterval(nudgeTimer); nudgeTimer=null; }
+function doNudge(zone,prop,step,limit){
+  const cur=L()[zone]?.[prop]??0;
+  const next=Math.round((cur+step)*100)/100;
+  const clamped=step>0?Math.min(next,limit):Math.max(next,limit);
+  sv(zone,prop,clamped);
+  const el=document.getElementById(`nw-${zone}-${prop}`);
+  if(el)el.value=clamped;
+}
+
+// ── Populate all controls ─────────────────────────────────────────
+function populate(){
+  // Zones
+  const Z=[
+    ['art','left',0.5,0,50],['art','top',0.5,0,50],
+    ['art','width',0.5,10,100],['art','height',0.5,5,80],['art','opacity',0.05,0,1],
+    ['name','left',0.5,0,50],['name','top',0.5,0,30],['name','fontSize',0.5,5,72],['name','opacity',0.05,0,1],
+    ['cost','right',0.5,0,30],['cost','top',0.5,0,20],['cost','fontSize',0.5,5,72],['cost','opacity',0.05,0,1],
+    ['typeline','left',0.5,0,50],['typeline','top',0.5,30,80],['typeline','right',0.5,0,50],
+    ['typeline','fontSize',0.5,5,72],['typeline','opacity',0.05,0,1],
+    ['atk','left',0.5,0,30],['atk','top',0.5,30,80],['atk','fontSize',0.5,5,72],['atk','opacity',0.05,0,1],
+    ['def','right',0.5,0,30],['def','top',0.5,30,80],['def','fontSize',0.5,5,72],['def','opacity',0.05,0,1],
+    ['effect','left',0.5,0,20],['effect','right',0.5,0,20],
+    ['effect','top',0.5,40,90],['effect','bottom',0.5,0,50],
+    ['effect','fontSize',0.5,5,72],['effect','lineHeight',0.05,1,2.5],['effect','opacity',0.05,0,1],
+    ['flavor','left',0.5,0,20],['flavor','right',0.5,0,20],['flavor','top',0.5,0,95],['flavor','bottom',0.5,0,50],
+    ['flavor','fontSize',0.5,4,72],['flavor','opacity',0.05,0,1],
+    ['setlabel','left',0.5,0,10],['setlabel','bottom',0.5,0,15],['setlabel','fontSize',0.5,3,72],['setlabel','opacity',0.05,0,1],
+  ];
+  Z.forEach(([zone,prop,step,min,max])=>{
+    const el=document.getElementById(`c-${zone}-${prop}`);
+    if(el) el.innerHTML=nw(zone,prop,step,min,max);
+  });
+  // Fonts
+  const F=['name','cost','typeline','atk','def','effect'];
+  F.forEach(zone=>{
+    const ff=document.getElementById(`f-${zone}-fontFamily`);
+    const fc=document.getElementById(`f-${zone}-color`);
+    const fw2=document.getElementById(`f-${zone}-fontWeight`);
+    if(ff)ff.innerHTML=fw(zone);
+    if(fc)fc.innerHTML=cw(zone,'color');
+    if(fw2)fw2.innerHTML=ww(zone);
+  });
+  const fc2=document.getElementById('f-flavor-color');
+  const fsc=document.getElementById('f-setlabel-color');
+  if(fc2)fc2.innerHTML=cw('flavor','color');
+  if(fsc)fsc.innerHTML=cw('setlabel','color');
+  // Effect paragraph controls
+  const efs2=document.getElementById('f-effect-fontStyle');
+  const eta=document.getElementById('f-effect-textAlign');
+  if(efs2)efs2.innerHTML=fsw('effect');
+  if(eta)eta.innerHTML=taw('effect');
+  // Flavor paragraph controls
+  const ffs=document.getElementById('f-flavor-fontStyle');
+  const fta=document.getElementById('f-flavor-textAlign');
+  if(ffs)ffs.innerHTML=fsw('flavor');
+  if(fta)fta.innerHTML=taw('flavor');
+}
+
+// ── Render preview ────────────────────────────────────────────────
+let cardArt=null;
+function rp(){
+  const scale=parseFloat(document.getElementById('cd-scale')?.value||'1');
+  const W=Math.round(480*scale), H=Math.round(672*scale);
+  const type=document.getElementById('cd-type')?.value||'Creature';
+  const type2=document.getElementById('cd-type2')?.value||'';
+  const name=document.getElementById('cd-name')?.value||'Card Name';
+  const cost=document.getElementById('cd-cost')?.value||'1';
+  const atk=document.getElementById('cd-atk')?.value||'1';
+  const def=document.getElementById('cd-def')?.value||'1';
+  const effect=document.getElementById('cd-effect')?.value||'Effect text.';
+  const flavor=document.getElementById('cd-flavor')?.value||'';
+  const isC=type==='Creature';
+  const typeLine=type2||(type==='Spell'?'Magic':type);
+  const frame=FRAME_FILES[currentFrame]||FRAME_FILES.Creatures;
+  const LL=L();
+
+  // Layout font sizes are calibrated for 480px (designer 1x scale).
+  // At scale=1 (480px display), fontScale=1.0 — use as-is.
+  // At scale=0.75 (360px), fontScale=0.75, etc.
+  const fontScale = scale;
+
+  function zs(zone,overrideFontPx){
+    const z=LL[zone]||{};
+    const p=[];
+    if(z.left!==undefined)p.push('left:'+z.left+'%');
+    if(z.right!==undefined)p.push('right:'+z.right+'%');
+    if(z.top!==undefined)p.push('top:'+z.top+'%');
+    if(z.bottom!==undefined)p.push('bottom:'+z.bottom+'%');
+    if(z.width!==undefined)p.push('width:'+z.width+'%');
+    // Skip height for bottom-anchored zones so content grows upward naturally
+    if(z.height!==undefined && z.bottom===undefined)p.push('height:'+z.height+'%');
+    const fs = overrideFontPx !== undefined ? overrideFontPx : (z.fontSize !== undefined ? z.fontSize : null);
+    if(fs !== null)p.push('font-size:'+Math.round(fs*fontScale*10)/10+'px');
+    if(z.color!==undefined)p.push('color:'+z.color);
+    if(z.fontFamily!==undefined)p.push("font-family:'"+z.fontFamily+"',sans-serif");
+    if(z.fontWeight!==undefined)p.push('font-weight:'+z.fontWeight);
+    if(z.lineHeight!==undefined)p.push('line-height:'+z.lineHeight);
+    if(z.opacity!==undefined&&z.opacity!==1)p.push('opacity:'+z.opacity);
+    if(z.textAlign!==undefined)p.push('text-align:'+z.textAlign);
+    if(z.fontStyle!==undefined)p.push('font-style:'+z.fontStyle);
+    if(z.verticalAlign!==undefined){
+      p.push('display:flex','flex-direction:column','overflow:hidden');
+      p.push('justify-content:'+(z.verticalAlign==='bottom'?'flex-end':z.verticalAlign==='middle'?'center':'flex-start'));
+      // If no height constraint (no top or explicit height), add a min-height so flex has space
+      if(z.top===undefined && z.height===undefined){
+        p.push('min-height:8%');
+      }
+    }
+    return p.join(';');
+  }
+
+  const showEffectBox = document.getElementById('show-effect-box')?.value === '1';
+  const showFlavorBox = document.getElementById('show-flavor-box')?.value === '1';
+  const al=LL.art||{};
+  const artSt=`position:absolute;left:${al.left||5}%;top:${al.top||10.7}%;width:${al.width||89.8}%;height:${al.height||40.9}%;overflow:hidden;z-index:0;opacity:${al.opacity??1}`;
+
+  // Dynamic font size for effect based on length
+  const elen=effect.length;
+  const baseFs=LL.effect?.fontSize||9;
+  const rawDynFs=baseFs*(elen>280?.70:elen>220?.80:elen>160?.88:elen>100?.94:1);
+  const dynFs=rawDynFs*fontScale;
+
+  document.getElementById('preview').innerHTML=`<div class="pf-card" style="width:${W}px;height:${H}px">
+    <div style="${artSt}">
+      ${cardArt
+        ?`<img src="${cardArt}" style="width:100%;height:100%;object-fit:cover;display:block">`
+        :`<div style="width:100%;height:100%;background:#2255bb20;display:flex;align-items:center;justify-content:center;font-size:${11*scale}px;color:#888">[ art ]</div>`}
+    </div>
+    <img class="c-frame" src="${frame}" alt="">
+    <span style="position:absolute;z-index:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72%;${zs('name')}">${name}</span>
+    <span style="position:absolute;z-index:2;${zs('cost')}">${cost}</span>
+    ${isC?`<span style="position:absolute;z-index:2;${zs('atk')}">${atk}</span>`:''}
+    <span style="position:absolute;z-index:2;text-align:center;${zs('typeline')}">${typeLine}</span>
+    ${isC?`<span style="position:absolute;z-index:2;${zs('def')}">${def}</span>`:''}
+    <div style="position:absolute;z-index:2;overflow:hidden;${zs('effect',rawDynFs)};${showEffectBox?'outline:1.5px dashed rgba(200,57,26,0.7);outline-offset:-1px;':''}">${effect}</div>
+    ${flavor?`<div style="position:absolute;z-index:2;left:${LL.flavor?.left??4}%;right:${LL.flavor?.right??4}%;top:${LL.flavor?.top??75}%;bottom:${LL.flavor?.bottom??8}%;${showFlavorBox?'outline:1.5px dashed rgba(100,150,255,0.7);outline-offset:-1px;':''}"><div style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;font-size:${Math.round((LL.flavor?.fontSize??7.5)*fontScale*10)/10}px;color:${LL.flavor?.color??'#444'};font-family:'${LL.flavor?.fontFamily??'Roboto'}',sans-serif;font-style:${LL.flavor?.fontStyle??'italic'};font-weight:${LL.flavor?.fontWeight??'400'};text-align:${LL.flavor?.textAlign??'left'};line-height:${LL.flavor?.lineHeight??1.4}">${flavor}</div></div>`:''}
+    <div style="position:absolute;z-index:2;${zs('setlabel')}">pt26-01 · Post Fiction Playtest #2</div>
+  </div>`;
+  renderDragHandles();
+}
+
+// ── Switch frame ──────────────────────────────────────────────────
+// Deep merge: fill missing zone properties from defaults
+function mergeWithDefaults(loaded){
+  const def = defaultLayout();
+  const result = {};
+  // For each zone in defaults
+  Object.keys(def).forEach(zone=>{
+    result[zone] = Object.assign({}, def[zone], loaded[zone]||{});
+  });
+  // Keep any extra zones from loaded
+  Object.keys(loaded).forEach(zone=>{
+    if(!result[zone]) result[zone] = loaded[zone];
+  });
+  return result;
+}
+
+function switchFrame(name){
+  currentFrame=name;
+  document.getElementById('preview-frame-label').textContent=name+'.json / '+name+'.png';
+  fetch('layouts/'+name+'.json?v='+Date.now())
+    .then(r=>r.ok?r.json():null)
+    .then(j=>{ if(j) LAYOUTS[name]=mergeWithDefaults(j); populate(); rp(); })
+    .catch(()=>{ populate(); rp(); });
+}
+
+// ── Export / import ───────────────────────────────────────────────
+function exportLayout(){
+  const json=JSON.stringify(L(),null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=currentFrame+'.json';
+  a.click();
+}
+function loadFromFile(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      LAYOUTS[currentFrame]=mergeWithDefaults(JSON.parse(e.target.result));
+      populate(); rp();
+    }catch(e){alert('Invalid JSON file.');}
+  };
+  r.readAsText(f);
+}
+function loadArt(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();r.onload=e=>{cardArt=e.target.result;rp();};
+  r.readAsDataURL(f);
+}
+
+// ── UI helpers ────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  document.getElementById('panel-'+name).classList.add('on');
+}
+function togSec(hd){
+  hd.classList.toggle('open');
+  hd.nextElementSibling.classList.toggle('closed');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// VISUAL EDITOR — drag to move, edge handles to resize, click for toolbar
+// ═══════════════════════════════════════════════════════════════════════
+
+let dragMode   = false;
+let activeDrag = null;  // current drag operation
+let selectedZone = null;
+
+const ZONE_COLORS = {
+  name:'#e74c3c', cost:'#e67e22', art:'#3498db',
+  atk:'#9b59b6', typeline:'#1abc9c', def:'#e91e63',
+  effect:'#f39c12', flavor:'#2ecc71', setlabel:'#95a5a6'
+};
+
+// Primary anchors for each zone
+const ZONE_ANCHORS = {
+  name:{x:'left',y:'top'}, cost:{x:'right',y:'top'}, art:{x:'left',y:'top'},
+  atk:{x:'left',y:'top'}, typeline:{x:'left',y:'top'}, def:{x:'right',y:'top'},
+  effect:{x:'left',y:'top'}, flavor:{x:'left',y:'bottom'}, setlabel:{x:'left',y:'bottom'}
+};
+
+// Default display size (% of card) when zone has no explicit size
+const ZONE_DEFAULT_SIZES = {
+  name:{w:62,h:9}, cost:{w:15,h:9}, art:{w:90,h:42},
+  atk:{w:14,h:9}, typeline:{w:40,h:9}, def:{w:14,h:9},
+  effect:{w:92,h:22}, flavor:{w:92,h:12}, setlabel:{w:55,h:7}
+};
+
+function toggleDrag(){
+  dragMode=!dragMode;
+  const btn=document.getElementById('drag-btn');
+  const status=document.getElementById('drag-status');
+  if(dragMode){
+    btn.textContent='✕ Close editor';btn.classList.add('on');
+    status.textContent='Click a zone to select · drag to move · drag edges to resize';
+  }else{
+    btn.textContent='🖐 Enable drag';btn.classList.remove('on');
+    status.textContent='';selectedZone=null;closeFmtBar();
+  }
+  rp();
+}
+
+// ── Zone geometry helpers ────────────────────────────────────────────────────
+function getZoneRect(zone){
+  const z=L()[zone]||{};
+  const a=ZONE_ANCHORS[zone];
+  const ds=ZONE_DEFAULT_SIZES[zone];
+  let x, y, w, h;
+  // X
+  if(z.left!==undefined && z.right!==undefined){
+    x=z.left; w=100-z.left-z.right;
+  } else if(z.left!==undefined){
+    x=z.left; w=ds.w;
+  } else {
+    w=ds.w; x=100-z.right-w;
+  }
+  // Y
+  if(z.top!==undefined && z.bottom!==undefined){
+    y=z.top; h=100-z.top-z.bottom;
+  } else if(z.top!==undefined){
+    y=z.top; h=ds.h;
+  } else {
+    h=ds.h; y=100-z.bottom-h;
+  }
+  return {x,y,w,h};
+}
+
+// ── Render all zone overlays ─────────────────────────────────────────────────
+function renderDragHandles(){
+  if(!dragMode)return;
+  const card=document.querySelector('#preview .pf-card');
+  if(!card)return;
+
+  // Remove old handles
+  card.querySelectorAll('.drag-handle').forEach(h=>h.remove());
+
+  Object.entries(ZONE_ANCHORS).forEach(([zone])=>{
+    const col=ZONE_COLORS[zone];
+    const r=getZoneRect(zone);
+    const isSel=selectedZone===zone;
+
+    const box=document.createElement('div');
+    box.className='drag-handle'+(isSel?' selected':'');
+    box.dataset.zone=zone;
+    box.style.cssText=
+      `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%;`+
+      `border-color:${col};background:${col}${isSel?'44':'22'};`+
+      `z-index:10;opacity:${isSel?1:0.75}`;
+
+    // Zone label
+    const lbl=document.createElement('span');
+    lbl.className='drag-label';
+    lbl.style.cssText=`background:${col};color:#fff`;
+    lbl.textContent=zone;
+    lbl.style.pointerEvents='none';
+    box.appendChild(lbl);
+
+    // Move handler (body of box)
+    box.addEventListener('mousedown', e=>{
+      if(e.target.classList.contains('rh'))return; // don't intercept resize handles
+      e.preventDefault();
+      e.stopPropagation();
+      selectedZone=zone;
+      startMove(e,zone);
+    });
+
+    // Resize handles (only on selected zone)
+    if(isSel){
+      [
+        {cls:'rh-n', dir:'n'}, {cls:'rh-s', dir:'s'},
+        {cls:'rh-e', dir:'e'}, {cls:'rh-w', dir:'w'},
+        {cls:'rh-nw',dir:'nw'},{cls:'rh-ne',dir:'ne'},
+        {cls:'rh-sw',dir:'sw'},{cls:'rh-se',dir:'se'},
+      ].forEach(({cls,dir})=>{
+        const rh=document.createElement('div');
+        rh.className='rh '+cls;
+        rh.addEventListener('mousedown',e=>{
+          e.preventDefault();e.stopPropagation();
+          startResize(e,zone,dir);
+        });
+        box.appendChild(rh);
+      });
+    }
+
+    card.appendChild(box);
+  });
+
+  // Show/update format bar for selected zone
+  if(selectedZone) showFmtBar(selectedZone);
+}
+
+// ── Move ─────────────────────────────────────────────────────────────────────
+function startMove(e,zone){
+  const card=document.querySelector('#preview .pf-card');
+  const r=getZoneRect(zone);
+  const a=ZONE_ANCHORS[zone];
+  activeDrag={
+    type:'move',zone,
+    startMX:e.clientX,startMY:e.clientY,
+    startX: a.x==='left'?(L()[zone]?.left||0):(L()[zone]?.right||0),
+    startY: a.y==='top' ?(L()[zone]?.top||0) :(L()[zone]?.bottom||0),
+    cardW:card.offsetWidth,cardH:card.offsetHeight
+  };
+  document.addEventListener('mousemove',onDragMove);
+  document.addEventListener('mouseup',endDragMove);
+}
+
+function onDragMove(e){
+  if(!activeDrag||activeDrag.type!=='move')return;
+  const {zone,startMX,startMY,startX,startY,cardW,cardH}=activeDrag;
+  const a=ZONE_ANCHORS[zone];
+  const dxP=Math.round((e.clientX-startMX)/cardW*1000)/10;
+  const dyP=Math.round((e.clientY-startMY)/cardH*1000)/10;
+  const nX=Math.round(Math.max(0,Math.min(95,a.x==='left'?startX+dxP:startX-dxP))*10)/10;
+  const nY=Math.round(Math.max(0,Math.min(95,a.y==='top'?startY+dyP:startY-dyP))*10)/10;
+  setZoneProp(zone,a.x,nX);
+  setZoneProp(zone,a.y,nY);
+  updateNumInput(zone,a.x,nX);
+  updateNumInput(zone,a.y,nY);
+  document.getElementById('drag-status').textContent=`${zone}: ${a.x}=${nX}% ${a.y}=${nY}%`;
+  rp();
+}
+
+function endDragMove(){
+  activeDrag=null;
+  document.removeEventListener('mousemove',onDragMove);
+  document.removeEventListener('mouseup',endDragMove);
+}
+
+// ── Resize ────────────────────────────────────────────────────────────────────
+function startResize(e,zone,dir){
+  const card=document.querySelector('#preview .pf-card');
+  const z=L()[zone]||{};
+  const r=getZoneRect(zone);
+  activeDrag={
+    type:'resize',zone,dir,
+    startMX:e.clientX,startMY:e.clientY,
+    startRect:{...r},
+    startZ:{...z},
+    cardW:card.offsetWidth,cardH:card.offsetHeight
+  };
+  document.addEventListener('mousemove',onResizeMove);
+  document.addEventListener('mouseup',endResizeMove);
+}
+
+function onResizeMove(e){
+  if(!activeDrag||activeDrag.type!=='resize')return;
+  const {zone,dir,startMX,startMY,startRect,startZ,cardW,cardH}=activeDrag;
+  const a=ZONE_ANCHORS[zone];
+  const dxP=Math.round((e.clientX-startMX)/cardW*1000)/10;
+  const dyP=Math.round((e.clientY-startMY)/cardH*1000)/10;
+  const z=L()[zone]||{};
+
+  // Handle each direction
+  // N: move top up or bottom down (depending on anchor)
+  if(dir.includes('n')){
+    if(a.y==='top'){
+      const nTop=Math.round(Math.max(0,Math.min(startRect.y+startRect.h-2,startRect.y+dyP))*10)/10;
+      setZoneProp(zone,'top',nTop); updateNumInput(zone,'top',nTop);
+    } else {
+      // bottom-anchored: shrink from top means increasing bottom
+      const newH=Math.max(2,startRect.h-dyP);
+      const nBot=Math.round(Math.max(0,100-startRect.y-newH)*10)/10;
+      setZoneProp(zone,'bottom',nBot); updateNumInput(zone,'bottom',nBot);
+    }
+  }
+  if(dir.includes('s')){
+    if(a.y==='top'){
+      // Expand down = we don't have explicit height in most zones, so set bottom
+      const nBot=Math.round(Math.max(0,100-startRect.y-startRect.h+dyP>0?100-startRect.y-startRect.h-dyP:2)*10)/10;
+      // Actually: increasing height means decreasing bottom or increasing height prop
+      // For top-anchored zones without explicit bottom, add a bottom property
+      const newH=Math.max(2,startRect.h+dyP);
+      const nBottom=Math.round(Math.max(0,100-startRect.y-newH)*10)/10;
+      setZoneProp(zone,'bottom',nBottom); updateNumInput(zone,'bottom',nBottom);
+    } else {
+      // bottom-anchored: expand up
+      const nBot=Math.round(Math.max(0,startRect.y+startRect.h-dyP>0?(startZ.bottom||0)-dyP:0)*10)/10;
+      setZoneProp(zone,'bottom',Math.max(0,nBot)); updateNumInput(zone,'bottom',Math.max(0,nBot));
+    }
+  }
+  if(dir.includes('w')){
+    if(a.x==='left'){
+      const nLeft=Math.round(Math.max(0,Math.min(startRect.x+startRect.w-2,startRect.x+dxP))*10)/10;
+      setZoneProp(zone,'left',nLeft); updateNumInput(zone,'left',nLeft);
+    } else {
+      const newW=Math.max(2,startRect.w-dxP);
+      const nRight=Math.round(Math.max(0,100-startRect.x-newW)*10)/10;
+      setZoneProp(zone,'right',nRight); updateNumInput(zone,'right',nRight);
+    }
+  }
+  if(dir.includes('e')){
+    if(a.x==='left'){
+      const newW=Math.max(2,startRect.w+dxP);
+      const nRight=Math.round(Math.max(0,100-startRect.x-newW)*10)/10;
+      setZoneProp(zone,'right',nRight); updateNumInput(zone,'right',nRight);
+    } else {
+      const nRight=Math.round(Math.max(0,(startZ.right||0)-dxP)*10)/10;
+      setZoneProp(zone,'right',Math.max(0,nRight)); updateNumInput(zone,'right',Math.max(0,nRight));
+    }
+  }
+
+  document.getElementById('drag-status').textContent=
+    `Resize ${zone} ${dir.toUpperCase()}`;
+  rp();
+}
+
+function endResizeMove(){
+  activeDrag=null;
+  document.removeEventListener('mousemove',onResizeMove);
+  document.removeEventListener('mouseup',endResizeMove);
+}
+
+// ── Format toolbar ────────────────────────────────────────────────────────────
+function closeFmtBar(){
+  document.getElementById('fmt-bar')?.remove();
+}
+
+function showFmtBar(zone){
+  closeFmtBar();
+  const card=document.querySelector('#preview .pf-card');
+  if(!card||!zone)return;
+  const z=L()[zone]||{};
+  const col=ZONE_COLORS[zone];
+  const r=getZoneRect(zone);
+  const cardRect=card.getBoundingClientRect();
+  const previewRect=document.getElementById('preview').getBoundingClientRect();
+
+  const bar=document.createElement('div');
+  bar.className='fmt-bar';
+  bar.id='fmt-bar';
+
+  // Position bar above or below selected zone
+  const zoneTopPx=card.offsetHeight*(r.y/100);
+  const barTopOffset= zoneTopPx>60 ? -50 : card.offsetHeight*(r.y/100)+card.offsetHeight*(r.h/100)+6;
+  bar.style.cssText=
+    `top:${barTopOffset}px;`+
+    `left:${card.offsetWidth*(r.x/100)}px;`+
+    `border-color:${col}44`;
+
+  // Font family
+  bar.innerHTML+=`<span class="fmt-label">Font</span>`;
+  const ffSel=document.createElement('select');
+  ffSel.style.maxWidth='90px';
+  ['Roboto','Audiowide','Oswald','Rajdhani','Exo 2','Orbitron','Share Tech Mono','Bebas Neue'].forEach(f=>{
+    const opt=document.createElement('option');
+    opt.value=f;opt.textContent=f;
+    if((z.fontFamily||'Roboto')===f)opt.selected=true;
+    ffSel.appendChild(opt);
+  });
+  ffSel.onchange=()=>{setZoneProp(zone,'fontFamily',ffSel.value);rp();};
+  bar.appendChild(ffSel);
+
+  // Font size
+  bar.innerHTML+=`<div class="fmt-divider"></div>`;
+  const fsInput=document.createElement('input');
+  fsInput.type='number';fsInput.className='fmt-num';
+  fsInput.value=z.fontSize||9;fsInput.min=4;fsInput.max=48;fsInput.step=0.5;
+  fsInput.title='Font size (px at 480px scale)';
+  fsInput.oninput=()=>{setZoneProp(zone,'fontSize',+fsInput.value);rp();};
+  bar.appendChild(fsInput);
+  bar.innerHTML+=`<span class="fmt-label">px</span>`;
+
+  // Bold
+  bar.innerHTML+=`<div class="fmt-divider"></div>`;
+  const boldBtn=mkFmtBtn('<b>B</b>','Bold',(z.fontWeight||'400')==='700',()=>{
+    const cur=(L()[zone]?.fontWeight||'400')==='700';
+    setZoneProp(zone,'fontWeight',cur?'400':'700');
+    boldBtn.classList.toggle('on',!cur);rp();
+  });
+  bar.appendChild(boldBtn);
+
+  // Italic
+  const itBtn=mkFmtBtn('<i>I</i>','Italic',(z.fontStyle||'normal')==='italic',()=>{
+    const cur=(L()[zone]?.fontStyle||'normal')==='italic';
+    setZoneProp(zone,'fontStyle',cur?'normal':'italic');
+    itBtn.classList.toggle('on',!cur);rp();
+  });
+  bar.appendChild(itBtn);
+
+  // Vertical alignment
+  bar.innerHTML+=`<div class="fmt-divider"></div><span class="fmt-label">Vert</span>`;
+  const curVA = z.verticalAlign||'top';
+  [['top','Top'],['middle','Middle'],['bottom','Bottom']].forEach(([val,tip])=>{
+    const icons={'top':'⬆','middle':'↕','bottom':'⬇'};
+    const vaBtn=mkFmtBtn(icons[val],tip,curVA===val,()=>{
+      setZoneProp(zone,'verticalAlign',val);
+      bar.querySelectorAll('[data-va]').forEach(b=>b.classList.remove('on'));
+      vaBtn.classList.add('on');rp();
+    });
+    vaBtn.dataset.va=val;
+    bar.appendChild(vaBtn);
+  });
+
+  // Horizontal alignment
+  bar.innerHTML+=`<div class="fmt-divider"></div>`;
+  const cur=z.textAlign||'left';
+  [['≡','left','Left'],['≡','center','Center'],['≡','right','Right'],['⇔','justify','Justify']].forEach(([ico,val,tip],i)=>{
+    // Custom icons for alignment
+    const icons=['&#8676;','&#8677;','&#8678;','&#8793;'];
+    const alignIcons=['<span style="display:flex;flex-direction:column;gap:1px;align-items:flex-start"><span style="width:10px;height:1.5px;background:currentColor"></span><span style="width:7px;height:1.5px;background:currentColor"></span><span style="width:9px;height:1.5px;background:currentColor"></span></span>',
+      '<span style="display:flex;flex-direction:column;gap:1px;align-items:center"><span style="width:10px;height:1.5px;background:currentColor"></span><span style="width:6px;height:1.5px;background:currentColor"></span><span style="width:9px;height:1.5px;background:currentColor"></span></span>',
+      '<span style="display:flex;flex-direction:column;gap:1px;align-items:flex-end"><span style="width:10px;height:1.5px;background:currentColor"></span><span style="width:7px;height:1.5px;background:currentColor"></span><span style="width:9px;height:1.5px;background:currentColor"></span></span>',
+      '<span style="display:flex;flex-direction:column;gap:1px;"><span style="width:10px;height:1.5px;background:currentColor"></span><span style="width:10px;height:1.5px;background:currentColor"></span><span style="width:10px;height:1.5px;background:currentColor"></span></span>'];
+    const aBtn=mkFmtBtn(alignIcons[i],tip,cur===val,()=>{
+      setZoneProp(zone,'textAlign',val);
+      bar.querySelectorAll('[data-align]').forEach(b=>b.classList.remove('on'));
+      aBtn.classList.add('on');rp();
+    });
+    aBtn.dataset.align=val;
+    bar.appendChild(aBtn);
+  });
+
+  // Opacity
+  bar.innerHTML+=`<div class="fmt-divider"></div><span class="fmt-label">Opacity</span>`;
+  const opInput=document.createElement('input');
+  opInput.type='range';opInput.min=0;opInput.max=1;opInput.step=0.05;
+  opInput.value=z.opacity!==undefined?z.opacity:1;
+  opInput.style.cssText='width:50px;accent-color:#c8391a;cursor:pointer';
+  opInput.oninput=()=>{setZoneProp(zone,'opacity',+opInput.value);rp();};
+  bar.appendChild(opInput);
+
+  // Stop clicks on bar from deselecting
+  bar.addEventListener('mousedown',e=>e.stopPropagation());
+
+  card.appendChild(bar);
+}
+
+function mkFmtBtn(html, title, on, cb){
+  const btn=document.createElement('button');
+  btn.className='fmt-btn'+(on?' on':'');
+  btn.title=title;
+  btn.innerHTML=html;
+  btn.onclick=cb;
+  return btn;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function setZoneProp(zone,prop,val){
+  if(!LAYOUTS[currentFrame])LAYOUTS[currentFrame]=defaultLayout();
+  if(!LAYOUTS[currentFrame][zone])LAYOUTS[currentFrame][zone]={};
+  LAYOUTS[currentFrame][zone][prop]=val;
+}
+
+function updateNumInput(zone,prop,val){
+  const el=document.getElementById(`nw-${zone}-${prop}`);
+  if(el)el.value=val;
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+switchFrame('Creatures');
+</script>
+</body>
+</html>

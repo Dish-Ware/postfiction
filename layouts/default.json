@@ -1,0 +1,82 @@
+{
+  "name": {
+    "left": 4,
+    "top": 2,
+    "fontSize": 11,
+    "color": "#111111",
+    "fontFamily": "Roboto",
+    "fontWeight": "700"
+  },
+  "cost": {
+    "right": 3,
+    "top": 1.5,
+    "fontSize": 13,
+    "color": "#111111",
+    "fontFamily": "Audiowide",
+    "fontWeight": "400"
+  },
+  "art": {
+    "left": 5,
+    "top": 10.7,
+    "width": 89.8,
+    "height": 40.9
+  },
+  "atk": {
+    "left": 4,
+    "top": 53,
+    "fontSize": 11,
+    "color": "#111111",
+    "fontFamily": "Audiowide",
+    "fontWeight": "400"
+  },
+  "typeline": {
+    "top": 52.5,
+    "fontSize": 11,
+    "color": "#111111",
+    "fontFamily": "Roboto",
+    "fontWeight": "700"
+  },
+  "def": {
+    "right": 4,
+    "top": 53,
+    "fontSize": 11,
+    "color": "#111111",
+    "fontFamily": "Audiowide",
+    "fontWeight": "400"
+  },
+  "effect": {
+    "left": 4,
+    "right": 4,
+    "top": 60,
+    "bottom": 8,
+    "fontSize": 9,
+    "color": "#111111",
+    "lineHeight": 1.45,
+    "fontFamily": "Roboto",
+    "fontWeight": "700",
+    "textAlign": "left",
+    "fontStyle": "normal",
+    "verticalAlign": "top"
+  },
+  "flavor": {
+    "left": 4,
+    "right": 4,
+    "bottom": 8,
+    "fontSize": 7.5,
+    "color": "#444444",
+    "fontFamily": "Roboto",
+    "fontWeight": "400",
+    "textAlign": "left",
+    "fontStyle": "italic",
+    "top": 75,
+    "verticalAlign": "bottom"
+  },
+  "setlabel": {
+    "left": 4,
+    "bottom": 1,
+    "fontSize": 6,
+    "color": "#666666",
+    "fontFamily": "Roboto",
+    "fontWeight": "400"
+  }
+}
